@@ -8,13 +8,13 @@ include_once INTEL_DIR . 'includes/intel.wizard.inc';
 
 include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
 
-function intel_example_admin_setup_wizard_info($items = array()) {
+function intel_example_addon_admin_setup_wizard_info($items = array()) {
   global $intel_example;
 
   $info = array(
     'title' => $intel_example->plugin_info['plugin_title'] . ' ' . __('setup'),
     'un' => 'intel_example_setup',
-    'callback_prefix' => 'intel_example_admin_setup',
+    'callback_prefix' => 'intel_example_addon_admin_setup',
     'steps' => array(),
   );
 
@@ -43,13 +43,13 @@ function intel_example_admin_setup_wizard_info($items = array()) {
   return $info;
 }
 
-function intel_example_admin_setup_page() {
-  $wizard_info = intel_example_admin_setup_wizard_info();
+function intel_example_addon_admin_setup_page() {
+  $wizard_info = intel_example_addon_admin_setup_wizard_info();
   $form = Intel_Form::drupal_get_form('intel_wizard_form', $wizard_info);
   return Intel_Df::render($form);
 }
 
-function intel_example_admin_setup_intel_plugin($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_plugin($form, &$form_state) {
   $f = array();
 
   include_once intel_example()->dir . 'intel_example.setup.inc';
@@ -64,7 +64,7 @@ function intel_example_admin_setup_intel_plugin($form, &$form_state) {
   return $f;
 }
 
-function intel_example_admin_setup_intel_plugin_check($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_plugin_check($form, &$form_state) {
   include_once INTEL_DIR . 'includes/intel.ga.inc';
 
   $status = array();
@@ -80,13 +80,13 @@ function intel_example_admin_setup_intel_plugin_check($form, &$form_state) {
   return $status;
 }
 
-function intel_example_admin_setup_intel_plugin_validate($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_plugin_validate($form, &$form_state) {
   if (!empty($status['error_msg'])) {
     Intel_Form::form_set_error('none', $status['error_msg']);
   }
 }
 
-function intel_example_admin_setup_intel_profile($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_profile($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
   $options = array(
     'imapi_property_setup' => array(
@@ -96,22 +96,22 @@ function intel_example_admin_setup_intel_profile($form, &$form_state) {
   return intel_admin_setup_intel_profile($form, $form_state, $options);
 }
 
-function intel_example_admin_setup_intel_profile_check($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_profile_check($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
   return intel_admin_setup_intel_profile_check($form, $form_state);
 }
 
-function intel_example_admin_setup_intel_profile_validate($form, &$form_state, $status) {
+function intel_example_addon_admin_setup_intel_profile_validate($form, &$form_state, $status) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
   return intel_admin_setup_intel_profile_validate($form, $form_state, $status);
 }
 
-function intel_example_admin_setup_intel_profile_submit($form, &$form_state) {
+function intel_example_addon_admin_setup_intel_profile_submit($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
   return intel_admin_setup_intel_profile_submit($form, $form_state);
 }
 
-function intel_example_admin_setup_default_tracking($form, &$form_state) {
+function intel_example_addon_admin_setup_default_tracking($form, &$form_state) {
   $f = array();
 
   $items = array();
@@ -177,7 +177,7 @@ function intel_example_admin_setup_default_tracking($form, &$form_state) {
   return $f;
 }
 
-function intel_example_admin_setup_default_tracking_check($form, &$form_state) {
+function intel_example_addon_admin_setup_default_tracking_check($form, &$form_state) {
   $status = array();
 
   $event_name = get_option('intel_form_track_submission_default', -1);
@@ -192,16 +192,16 @@ function intel_example_admin_setup_default_tracking_check($form, &$form_state) {
   return $status;
 }
 
-function intel_example_admin_setup_default_tracking_validate($form, &$form_state, $status) {
+function intel_example_addon_admin_setup_default_tracking_validate($form, &$form_state, $status) {
 
 }
 
-function intel_example_admin_setup_default_tracking_submit($form, &$form_state) {
+function intel_example_addon_admin_setup_default_tracking_submit($form, &$form_state) {
   update_option('intel_form_track_submission_default', $form_state['values']['intel_form_track_submission_default']);
   update_option('intel_form_track_submission_value_default', $form_state['values']['intel_form_track_submission_value_default']);
 }
 
-function intel_example_admin_setup_finish($form, &$form_state) {
+function intel_example_addon_admin_setup_finish($form, &$form_state) {
   global $intel_example;
 
   $f = array();

@@ -8,13 +8,13 @@
  * @package    Intel
  */
 
-if (!is_callable('intel_setup')) {
+if (!is_callable('intel_setup_addon')) {
 	include_once intel_example()->dir . 'intel_com/intel.setup.inc';
 }
 
-class Intel_Example_Setup extends Intel_Setup {
+class Intel_Example_Addon_Setup extends Intel_Setup {
 
-	public $plugin_un = 'intel_example';
+	public $plugin_un = 'intel_example_addon';
 
 	/*
 	 * Include any methods from Intel_Setup you want to override
@@ -22,7 +22,7 @@ class Intel_Example_Setup extends Intel_Setup {
 
 }
 
-function intel_example_setup() {
-	return Intel_Example_Setup::instance();
+function intel_example_addon_setup() {
+	return Intel_Example_Addon_Setup::instance();
 }
-intel_example_setup();
+intel_example_addon_setup();

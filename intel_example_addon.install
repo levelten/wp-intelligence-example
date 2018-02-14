@@ -10,7 +10,7 @@
  */
 
 
-function intel_example_install() {
+function intel_example_addon_install() {
 
 }
 
@@ -20,7 +20,7 @@ function intel_example_install() {
  * Delete plugin settings
  *
  */
-function intel_example_uninstall() {
+function intel_example_addon_uninstall() {
 	global $wpdb;
 
 	// delete options
@@ -39,6 +39,6 @@ function intel_example_uninstall() {
  *
  * Used to implement ordered database updates.
  */
-function intel_example_update_1001() {
+function intel_example_adon_update_1001() {
 
 }

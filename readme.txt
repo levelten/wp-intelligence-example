@@ -12,6 +12,52 @@ Example Intelligence Add-On. Good start for add-ons.
 
 == Description ==
 
+Download the plugin.
+
+The examples are for creating an addon to extend the fictitious Foo Bar plugin
+
+Foo Bar plugin info:
+Title: Foo Bar
+Slug: foo-bar
+Main plugin file: foo-bar.php
+
+Create a plugin title and plugin unique name (plugin_un) for the addon combining naming for Intelligence and the extends
+plugin.
+
+Example
+Title: Intelligence Foo Bar
+Plugin_un: intel_foo_bar
+
+Change any file names including 'intel_example' to the new plugin_un.
+
+Examples:
+intel_example.php -> intel_foo_bar.php
+intel_example.install -> intel_foo_bar.install
+intel_example.setup -> intel_foo_bar.setup
+admin/intel_example.setup.inc -> admin/intel_foo_bar.setup.inc
+
+Search and replace in the new plugin directory
+
+Human readable title
+Intelligence Example Addon -> Intelligence Foo Bar
+
+Plugin unique name
+intel_example_addon -> intel_foo_bar
+
+Class names
+Intel_Example_Addon -> Intel_Foo_Bar
+
+Contants
+INTEL_EXAMPLE_ADDON -> INTEL_FOO_BAR
+
+Review:
+Intel_Example_Addon::intel_plugin_info()
+
+
+
+
+Example
+
 == Installation ==
 
 === Install Files Within WordPress ===

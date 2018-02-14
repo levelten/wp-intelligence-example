@@ -1,6 +1,6 @@
 <?php
 /**
-* Intelligence Example bootstrap file
+* Intelligence Example Addon bootstrap file
 *
 * This file is read by WordPress to generate the plugin information in the plugin
 * admin area. This file also includes all of the dependencies used by the plugin,
@@ -12,8 +12,8 @@
 * @package           Intelligence
 *
 * @wordpress-plugin
-* Plugin Name:       Intelligence Example
-* Plugin URI:        https://wordpress.org/plugins/intelligence-example
+* Plugin Name:       Intelligence Example Addon
+* Plugin URI:        https://wordpress.org/plugins/intelligence-example-addon
 * Description:       Example Intelligence add-on plugin.
 * Version:           1.0.0.0-dev
 * Author:            LevelTen
@@ -22,7 +22,7 @@
 * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
 * Text Domain:       intel_example
 * Domain Path:       /languages
-* GitHub Plugin URI: https://github.com/levelten/wp-intelligence-example
+* GitHub Plugin URI: https://github.com/levelten/wp-intelligence-example-addon
 */
 
 /**
@@ -36,23 +36,23 @@ if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
-define('INTEL_EXAMPLE_VER', '1.0.0.0-dev');
+define('INTEL_EXAMPLE_ADDON_VER', '1.0.0.0-dev');
 
 /**
  * Class Intel_Example
  */
-final class Intel_Example {
+final class Intel_Example_Addon {
 
-  protected $version = INTEL_EXAMPLE_VER;
+  protected $version = INTEL_EXAMPLE_ADDON_VER;
 
   public $plugin_info = array();
 
-  public $plugin_un = 'intel_example';
+  public $plugin_un = 'intel_example_addon';
 
   public $form_type_un = 'exampleform';
 
   /**
-   * @var Intel_Example
+   * @var Intel_Example_Addon
    * @since 1.0.0
    */
   private static $instance;
@@ -82,7 +82,7 @@ final class Intel_Example {
    * @since 1.0.2
    * @static
    * @static var array $instance
-   * @return Intel_Example Instance
+   * @return Intel_Example_Addon Instance
    */
   public static function instance($options = array()) {
     if (null === static::$instance) {
@@ -170,22 +170,24 @@ final class Intel_Example {
       // The unique name for this plugin
       'plugin_un' => $this->plugin_un,
       // Title of the plugin
-      'plugin_title' => __('Intelligence Example Add-On', $this->plugin_un),
+      'plugin_title' => __('Intelligence Example Addon', $this->plugin_un),
       // Shorter version of title used when reduced characters are desired
       'plugin_title_short' => __('Intelligence Example', $this->plugin_un),
       // Main plugin file
-      'plugin_file' => 'wpcf7-intel.php', // Main plugin file
+      'plugin_file' => 'intel_example_addon.php', // Main plugin file
       // The server path to the plugin files directory
       'plugin_dir' => $this->dir,
       // The browser path to the plugin files directory
       'plugin_url' => $this->url,
       // The install file for the plugin if different than [plugin_un].install
       // Used to auto discover database updates
-      'update_file' => 'intel_example.install', // default [plugin_un].install
+      'update_file' => 'intel_example_addon.install', // default [plugin_un].install
       // If this plugin extends a plugin other than Intelligience, include that
       // plugin's info in 'extends_' properties
       // The extends plugin unique name
-      'extends_plugin_un' => 'example-plugin',
+      'extends_plugin_un' => 'example_plugin',
+      // the extends plugin text domain key
+      'extends_plugin_text_domain' => 'example-plugin',
       // the extends plugin title
       'extends_plugin_title' => __('Example Plugin', 'example-plugin'),
     );
