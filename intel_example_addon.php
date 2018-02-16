@@ -87,6 +87,7 @@ final class Intel_Example_Addon {
   public static function instance($options = array()) {
     if (null === static::$instance) {
       static::$instance = new static($options);
+      static::$instance->run();
     }
 
     return static::$instance;
@@ -124,13 +125,16 @@ final class Intel_Example_Addon {
     // Register hook_intel_demo_pages()
     add_filter('intel_demo_posts', array( $this, 'intel_demo_posts' ));
 
-    // Register hook_intel_form_type_info()
-    add_filter('intel_form_type_info', array( $this, 'intel_form_type_info'));
+  }
 
-    // Register hook_intel_form_type_FORM_TYPE_UN_form_info()
-    add_filter('intel_form_type_exampleform_form_info', array( $this, 'intel_form_type_form_info' ));
-    // Register hook_wp_loaded()
+  protected function run() {
+    include_once $this->dir . 'intel_com/intel.wp.inc';
 
+    // Intel Form usage example
+    include_once $this->dir . 'examples/intel_example_addon.intel_form.inc';
+
+    // Intel Form Type usage example
+    include_once $this->dir . 'examples/intel_example_addon.form_type.inc';
   }
 
   /**
@@ -205,99 +209,6 @@ final class Intel_Example_Addon {
   function intel_system_info($info = array()) {
     // array of plugin info indexed by plugin_un
     $info[$this->plugin_un] = $this->intel_plugin_info();
-    return $info;
-  }
-
-  /**
-   * Implements hook_form_type_info()
-   *
-   * Registers a form type provided by or connected to this plugin. Only needed
-   * if the plugin provides a form such as Contact Form 7, Ninja Forms or Gravity Forms.
-   *
-   * Optional: Remove if plugin does not provide a form type to be tracked
-   *
-   * @param array $info
-   * @return array
-   */
-  function intel_form_type_info($info = array()) {
-    $info[$this->form_type_un] = array(
-      // A machine name to uniquly identify the form type provided by this plugin.
-      'un' => $this->form_type_un,
-      // Human readable name of the form type provided by this plugin.
-      'title' => __( 'Example Form', $this->plugin_un ),
-      // The plugin unique name for this plugin
-      'plugin_un' => $this->plugin_un,
-      /*
-      'plugin' => array(
-        // The plugin unique name for this plugin
-        'un' => 'intel_example',
-        'name' => __( 'Contact Form 7', 'contact-form-7' ),
-        'slug' => 'contact-form-7',
-        'text_domain' => 'contact-form-7',
-      ),
-      */
-      //'submission_data_callback' => 'wpcf7_intel_form_type_submission_data',
-    );
-    return $info;
-  }
-
-  /**
-   * Implements hook_intel_form_type_FORM_TYPE_UN_form_info()
-   *
-   * Provides configuration and Intelligence settings information about each
-   * form that exists in the site of the form_type provided or connected to by
-   * this plugin.
-   *
-   * Optional: Remove if plugin does not provide a form type to be tracked
-   */
-  function intel_form_type_form_info($data = NULL, $options = array()) {
-    static $info = array();
-
-    if (!empty($info) && empty($options['refresh'])) {
-      return $info;
-    }
-
-    $args = array(
-      'post_type'   => 'example_form',
-    );
-
-    $posts = get_posts( $args );
-
-    foreach ($posts as $k => $post) {
-      $row = array(
-        'settings' => array(),
-      );
-      $row['id'] = $post->ID;
-      $row['title'] = $post->post_title;
-      $options = get_option('intel_example_form_settings_' . $post->ID, array());
-
-      if ($this->is_intel_installed() && !empty($options)) {
-
-        if (!empty($options['track_submission'])) {
-          $labels = intel_get_form_submission_eventgoal_options();
-          $row['settings']['track_submission'] = $options['track_submission'];
-          $row['settings']['track_submission__title'] = !empty($labels[$options['track_submission']]) ? $labels[$options['track_submission']] : $options['track_submission'];
-        }
-
-        if (!empty($options['track_submission_value'])) {
-          $row['settings']['track_submission_value'] = $options['track_submission_value'];
-        }
-
-        $row['settings']['field_map'] = array();
-        if (!empty($options['field_map']) && is_array($options['field_map'])) {
-          foreach ($options['field_map'] as $k => $v) {
-            if (!empty($v)) {
-              $row['settings']['field_map'][] = $v;
-            }
-          }
-        }
-
-      }
-
-      $row['settings_url'] = '/wp-admin/admin.php?page=intel_example&action=edit&post=' . $row['id'] . '#intel';
-      $info[$post->ID] = $row;
-    }
-
     return $info;
   }
 
@@ -459,12 +370,12 @@ final class Intel_Example_Addon {
     add_menu_page(esc_html__("Example", $this->plugin_un), esc_html__("Example", $this->plugin_un), 'manage_options', 'example', array($this, 'example_settings_page'), version_compare($this->plugin_un, '3.8.0', '>=') ? 'dashicons-analytics' : '');
 
     // Custom sub-page for Intel settings
-    add_submenu_page('example', esc_html__("Settings", $this->plugin_un), esc_html__("Intelligence", $this->plugin_un), 'manage_options', $this->plugin_un, array($this, 'example_settings_page'));
+    add_submenu_page('example', esc_html__("Settings", $this->plugin_un), esc_html__("Intelligence settings", $this->plugin_un), 'manage_options', $this->plugin_un, array($this, 'example_settings_page'));
 
     // Intel setup checks. Alternative to using hook_wp_loaded()
     if (!$this->is_intel_installed()) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      intel_example_setup()->plugin_setup_admin_menu();
+      intel_example_addon_setup()->plugin_setup_admin_menu();
     }
   }
 
@@ -472,12 +383,14 @@ final class Intel_Example_Addon {
    * Settings page for Admin > Example > Intelligence
    */
   public function example_settings_page() {
+
+    if (!$this->is_intel_installed('min')) {
+      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
+      print intel_example_addon_setup()->plugin_setup_notice(array('alert' => 1));
+      return;
+    }
+
     $items = array();
-
-    $items[] = '<div class="wrap">';
-    $items[] = '<h1>' . esc_html__( 'Intelligence Settings', $this->plugin_un ) . '</h1>';
-    $items[] = '</div>';
-
 
     if($this->is_intel_installed()) {
       $connect_desc = __('Connected');
@@ -485,9 +398,9 @@ final class Intel_Example_Addon {
     else {
       $connect_desc = __('Not connected.', $this->plugin_un);
       $connect_desc .= ' ' . sprintf(
-          __( ' %sSetup Intelligence%s', $this->plugin_un ),
-          '<a href="' . wpcf7_intel_setup()->plugin_setup_url() . '" class="button">', '</a>'
-        );
+        __( ' %sSetup Intelligence%s', $this->plugin_un ),
+        '<a href="' . wpcf7_intel_setup()->plugin_setup_url() . '" class="button">', '</a>'
+      );
     }
 
     $items[] = '<table class="form-table">';
@@ -521,15 +434,23 @@ final class Intel_Example_Addon {
     $items[] = '</table>';
 
     $output = implode("\n", $items);
-    echo $output;
+
+    $vars = array(
+      'title' => __( 'Intelligence Settings', $this->plugin_un ),
+      'content' => $output,
+    );
+    $output = intel_wp_theme('wp_screen', $vars);
+
+    print $output;
   }
+
 }
 
-function intel_example() {
-  return Intel_Example::instance();
+function intel_example_addon() {
+  return Intel_Example_Addon::instance();
 }
-global $intel_example;
-$intel_example = intel_example();
+global $intel_example_addon;
+$intel_example_addon = intel_example_addon();
 
 /*
  * Implements hook_register_activation_hook()
@@ -538,39 +459,39 @@ $intel_example = intel_example();
  *
  * Initializes Intel's database schema update system
  */
-function _intel_example_activation() {
+function _intel_example_addon_activation() {
   // plugin specific installation code.
   // initializes data for plugin when first installed
-  require_once plugin_dir_path( __FILE__ ) . 'intel_example.install';
-  intel_example_install();
+  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install';
+  intel_example_addon_install();
 
   // check if Intel is active
   if (is_callable('intel_activate_plugin')) {
     // initializes Intel's database update management system
-    intel_activate_plugin('intel_example');
+    intel_activate_plugin('intel_example_addon');
   }
 }
-register_activation_hook( __FILE__, '_intel_example_activation' );
+register_activation_hook( __FILE__, '_intel_example_addon_activation' );
 
 /**
  * Implements hook_register_deactivation_hook()
  *
  * The code that runs during plugin deactivation.
  */
-function _intel_example_deactivate() {
+function _intel_example_addon_deactivate() {
 
 }
-register_deactivation_hook( __FILE__, '_intel_example_deactivate' );
+register_deactivation_hook( __FILE__, '_intel_example_addon_deactivate' );
 
 /*
  * Implements hook_register_uninstall_hook()
  *
  * Runs when plugin is Deleted (uninstalled)
  */
-function _intel_example_uninstall() {
+function _intel_example_addon_uninstall() {
   // plugin specific installation code.
   // remove plugin data from database before plugin is uninstalled
-  require_once plugin_dir_path( __FILE__ ) . 'intel_example.install';
-  intel_example_uninstall();
+  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install';
+  intel_example_addon_uninstall();
 }
-register_uninstall_hook( __FILE__, '_intel_example_uninstall' );
+register_uninstall_hook( __FILE__, '_intel_example_addon_uninstall' );

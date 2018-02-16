@@ -9,7 +9,7 @@
  */
 
 if (!is_callable('intel_setup_addon')) {
-	include_once intel_example()->dir . 'intel_com/intel.setup.inc';
+	include_once intel_example_addon()->dir . 'intel_com/intel.setup.inc';
 }
 
 class Intel_Example_Addon_Setup extends Intel_Setup {

@@ -1,6 +1,9 @@
 <?php
 
 if (!is_callable('intel_setup')) {
+
+  include_once('intel.wp.inc');
+
   class Intel_Setup {
     const VERSION = '1.0.2';
 
@@ -82,7 +85,7 @@ if (!is_callable('intel_setup')) {
         global $pagenow;
 
         if ( 'plugins.php' == $pagenow ) {
-          add_action( 'admin_notices', array( $this, 'plugin_setup_notice') );
+          add_action( 'admin_notices', array( $this, 'plugin_setup_admin_notice') );
         }
       }
     }
@@ -111,50 +114,73 @@ if (!is_callable('intel_setup')) {
       return 'admin.php?page=intel_config&plugin=' . $this->plugin_un . '&q=' .'admin/config/intel/settings/setup/' . $this->plugin_un;
     }
 
-    public function plugin_setup_notice() {
+    public function get_plugin_setup_notice($options = array()) {
 
+      wp_enqueue_style('intel-setup-notice', intel_setup()->url . 'css/intel.setup_notice.css');
+
+      $output = '';
+      $items = array();
       $plugin_name = __('Plugin');
       if (!empty($this->plugin_info['plugin_title'])) {
         $plugin_name = $this->plugin_info['plugin_title'];
       }
 
+      $type = !empty($options['type']) ? $options['type'] : 'error';
+      $notice_class = "intel-setup notice notice-$type";
+      if (!empty($options['alert'])) {
+        $notice_class = "intel-setup alert alert-$type";
+      }
+
       // check dependencies
       if (!function_exists('intel_is_plugin_active')) {
-        echo '<div class="error">';
-        echo '<p>';
-        echo '<strong>' . __('Notice:') . '</strong> ';
+        //$output .= '<div class="notice notice-' . $type . '">';
+        $output .= '<div class="' . $notice_class . '">';
+        $output .= '<p>';
+        $output .= '<strong>' . __('Notice:') . '</strong> ';
 
-        echo $plugin_name . ' ';
-        _e('needs to be setup:', $this->plugin_un);
-        echo ' ' . sprintf(
+        $output .= $plugin_name . ' ';
+        $output .= __('needs to be setup:', $this->plugin_un);
+        $output .= ' ' . sprintf(
             __( ' %sSetup plugin%s', $this->plugin_un ),
             '<a href="' . $this->plugin_setup_url() . '" class="button">', '</a>'
           );
 
-        echo '</p>';
-        echo '</div>';
+        $output .= '</p>';
+        $output .= '</div>';
       }
       else {
         if (!empty($this->plugin_info['extends_plugin_un']) && !empty($this->plugin_info['extends_plugin_title'])) {
           if (!intel_is_plugin_active($this->plugin_info['extends_plugin_un'])) {
-            echo '<div class="error">';
-            echo '<p>';
-            echo '<strong>' . __('Notice:') . '</strong> ';
-            echo $plugin_name . ' ';
-            _e('requires the', $this->plugin_un) . ' ';
-            echo $this->plugin_info['extends_plugin_title'] . ' ';
-            _e('plugin to be installed and active.', $this->plugin_un);
-            echo '</p>';
-            echo '</div>';
+            $output .= '<div class="' . $notice_class . '">';
+            $output .= '<p>';
+            $output .= '<strong>' . __('Notice:') . '</strong> ';
+            $output .= $plugin_name . ' ';
+            $output .= __('requires the', $this->plugin_un) . ' ';
+            $output .= $this->plugin_info['extends_plugin_title'] . ' ';
+            $output .= __('plugin to be installed and active.', $this->plugin_un);
+            $output .= '</p>';
+            $output .= '</div>';
           }
         }
       }
+
+      return $output;
+    }
+
+    public function plugin_setup_admin_notice($options = array()) {
+      print $this->get_plugin_setup_notice($options);
     }
 
     public function plugin_setup_page() {
+      print $this->get_plugin_setup_page();
+    }
+
+    public function get_plugin_setup_page($options = array()) {
       if (!empty($_GET['plugin']) && $_GET['plugin'] != $this->plugin_un) {
         return;
       }
+
+      wp_enqueue_style('intel-plugin-setup-page', intel_setup()->url . 'css/intel.plugin_setup_page.css');
 
       // initialize setup state option
       $intel_setup = get_option('intel_setup', array());
@@ -163,16 +189,40 @@ if (!is_callable('intel_setup')) {
 
       intel_setup_set_activated_option('intelligence', array('destination' => $intel_setup['active_path']));
 
-      $vars = array(
-        'plugin_un' => $this->plugin_un,
-        'content' => $this->intel_install_instructions(),
-      );
-      $output = intel_setup_df_theme('plugin_setup_page', $vars);
+      $text_domain = $plugin_un = $this->plugin_un;
+      if (empty($vars['plugin_info'])) {
+        $system_info = array();
+        $system_info = apply_filters('intel_system_info', $system_info);
+        $plugin_info = $system_info[$plugin_un];
+      }
 
-      print $output;
+      $vars = array();
+      $vars['panel_header'] = '<div class="logo"></div>';
+      $vars['content'] = $this->get_intel_install_instructions();
+
+      $vars = array(
+        'id' => 'intel_plugin_setup_page',
+        'content' => intel_wp_theme('wp_welcome_panel', $vars),
+      );
+      $vars['title'] = !empty($plugin_info['plugin_title']) ? $plugin_info['plugin_title'] : __('Plugin');
+      $vars['title'] .= ' ' . __('Setup', $text_domain);
+
+      $vars['help_tab'] = array(
+        'title' => 'Help title',
+        'content' => 'Help content',
+      );
+
+      $output = intel_wp_theme('wp_screen', $vars);
+
+      return $output;
     }
 
-    public function intel_install_instructions() {
+    /**
+     * Returns plugin setup page instruction content
+     * 
+     * @return mixed|string
+     */
+    public function get_intel_install_instructions() {
       $vars = array(
         'plugin_un' => $this->plugin_un,
       );
@@ -242,6 +292,13 @@ if (!is_callable('intel_setup')) {
    */
   function intel_setup_theme($themes = array()) {
     //$themes = array();
+    $themes['wp_screen'] = array(
+      'variables' => array(
+        'title' => NULL,
+        'content' => NULL,
+      ),
+      'callback' => 'theme_wp_screen',
+    );
     $themes['plugin_setup_page'] = array(
       'variables' => array(
         'title' => NULL,

@@ -9,10 +9,10 @@ include_once INTEL_DIR . 'includes/intel.wizard.inc';
 include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
 
 function intel_example_addon_admin_setup_wizard_info($items = array()) {
-  global $intel_example;
+  global $intel_example_addon;
 
   $info = array(
-    'title' => $intel_example->plugin_info['plugin_title'] . ' ' . __('setup'),
+    'title' => $intel_example_addon->plugin_info['plugin_title'] . ' ' . __('setup'),
     'un' => 'intel_example_setup',
     'callback_prefix' => 'intel_example_addon_admin_setup',
     'steps' => array(),
@@ -52,9 +52,9 @@ function intel_example_addon_admin_setup_page() {
 function intel_example_addon_admin_setup_intel_plugin($form, &$form_state) {
   $f = array();
 
-  include_once intel_example()->dir . 'intel_example.setup.inc';
+  include_once intel_example_addon()->dir . 'intel_example_addon.setup.inc';
 
-  $instructions = intel_example_setup()->intel_install_instructions();
+  $instructions = intel_example_addon_setup()->get_intel_install_instructions();
 
   $f['instructions'] = array(
     '#type' => 'markup',
@@ -90,7 +90,7 @@ function intel_example_addon_admin_setup_intel_profile($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
   $options = array(
     'imapi_property_setup' => array(
-      'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/intel_example'),
+      'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/' . intel_example_addon()->plugin_un),
     ),
   );
   return intel_admin_setup_intel_profile($form, $form_state, $options);
@@ -116,7 +116,7 @@ function intel_example_addon_admin_setup_default_tracking($form, &$form_state) {
 
   $items = array();
 
-  $text_domain = 'intel_example';
+  $text_domain = 'intel_example_addon';
 
   $items[] = '<p>';
   $items[] = __('You can custom configure tracking per form.', $text_domain);
@@ -202,7 +202,7 @@ function intel_example_addon_admin_setup_default_tracking_submit($form, &$form_s
 }
 
 function intel_example_addon_admin_setup_finish($form, &$form_state) {
-  global $intel_example;
+  global $intel_example_addon;
 
   $f = array();
 
@@ -220,13 +220,13 @@ function intel_example_addon_admin_setup_finish($form, &$form_state) {
   $items[] = '<h3>' . Intel_Df::t('Congratulations') . '</h3>';
 
   $items[] = '<p>';
-  $items[] = $intel_example->plugin_info['plugin_title'] . ' ' . __(' is now being tracked!', 'intel_example');
+  $items[] = $intel_example_addon->plugin_info['plugin_title'] . ' ' . __(' is now being tracked!', 'intel_example_addon');
   $items[] = '</p>';
 
   $items[] = '<p>';
   $items[] = '<strong>' . Intel_Df::t('Go ahead, give it a try:') . '</strong>';
   $l_options = Intel_Df::l_options_add_class('btn btn-info');
-  $items[] = '<br>' . Intel_Df::l( Intel_Df::t('Test it now!'), 'admin/help/demo/' . $intel_example->plugin_un, $l_options);
+  $items[] = '<br>' . Intel_Df::l( Intel_Df::t('Test it now!'), 'admin/help/demo/' . $intel_example_addon->plugin_un, $l_options);
   $items[] = '</p>';
 
   $items[] = '</div>';
