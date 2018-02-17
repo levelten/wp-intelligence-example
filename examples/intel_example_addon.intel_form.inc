@@ -37,46 +37,16 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 /**
- * Class Intel_Example
+ * Class Intel_Example_Addon_Intel_Form
  */
-final class Intel_Example_Addon_Intel_Form {
-
-  public $main;
-
-  /**
-   * @var Intel_Example_Addon
-   * @since 1.0.0
-   */
-  private static $instance;
-
-  /**
-   * Main Plugin Instance
-   *
-   * Insures that only one instance of a plugin class exists in memory at any one
-   * time. Also prevents needing to define globals all over the place.
-   *
-   * @since 1.0.2
-   * @static
-   * @static var array $instance
-   * @return Intel_Example_Addon Instance
-   */
-  public static function instance($options = array()) {
-    if (null === static::$instance) {
-      static::$instance = new static($options);
-    }
-
-    return static::$instance;
-  }
+class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
 
   /**
    * constructor.
    *
    */
   public function __construct() {
-    global $wp;
-
-    // set main plugin class
-    $this->main = intel_example_addon();
+    parent::__construct();
 
     // Register hook_admin_menu()
     add_filter('admin_menu', array( $this, 'admin_menu' ));
@@ -90,25 +60,25 @@ final class Intel_Example_Addon_Intel_Form {
 
     // Register hook_intel_form_FORM_ID_alter()
     add_action('intel_form_Intel_Example_Addon_Intel_Form::intel_example_addon_settings_form_alter', array( $this, 'intel_form_intel_example_addon_settings_form_alter'), 10, 2 );
-
   }
 
   /**
    * Implements hook_admin_menu()
    */
   public function admin_menu() {
-    // Custom sub-page for Intel settings
-    add_submenu_page('example', esc_html__("Settings Form", $this->main->plugin_un), esc_html__("Intelligence settings form", $this->main->plugin_un), 'manage_options', $this->main->plugin_un . '_form', array($this, 'example_settings_page'));
+    parent::admin_menu();
 
+    // Custom sub-page for Intel settings
+    add_submenu_page('example', esc_html__("Settings Form", $this->plugin_un), esc_html__("Intelligence settings form", $this->plugin_un), 'manage_options', $this->plugin_un . '_form', array($this, 'example_settings_form_page'));
   }
 
   /*
    * Settings page for Admin > Example > Intelligence
    */
-  public function example_settings_page() {
+  public function example_settings_form_page() {
 
-    if (!$this->main->is_intel_installed()) {
-      require_once( $this->main->dir . $this->main->plugin_un . '.setup.inc' );
+    if (!$this->is_intel_installed()) {
+      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
       print intel_example_addon_setup()->plugin_setup_notice(array('alert' => 1));
       return;
     }
@@ -142,7 +112,7 @@ final class Intel_Example_Addon_Intel_Form {
     // Add a field
     $form['example_textfield'] = array(
       '#type' => 'textfield',
-      '#title' => __('Example textfield', self::$instance->main->plugin_un),
+      '#title' => __('Example textfield', self::$instance->plugin_un),
       '#default_value' => !empty($settings['example_textfield']) ? $settings['example_textfield'] : '',
     );
 
@@ -203,9 +173,9 @@ final class Intel_Example_Addon_Intel_Form {
       // Add field
       $form['example_textfield_alter'] = array(
         '#type' => 'textfield',
-        '#title' => __('Example textfield alter', $this->main->plugin_un),
+        '#title' => __('Example textfield alter', $this->plugin_un),
         '#default_value' => !empty($settings['example_textfield_alter']) ? $settings['example_textfield_alter'] : '',
-        '#description' => __('This field was added using hook_form_alter()', $this->main->plugin_un),
+        '#description' => __('This field was added using hook_form_alter()', $this->plugin_un),
       );
     }
   }
@@ -223,23 +193,23 @@ final class Intel_Example_Addon_Intel_Form {
     // Add field
     $form['example_textfield_name_alter'] = array(
       '#type' => 'textfield',
-      '#title' => __('Example textfield name alter', $this->main->plugin_un),
+      '#title' => __('Example textfield name alter', $this->plugin_un),
       '#default_value' => !empty($settings['example_textfield_name_alter']) ? $settings['example_textfield_name_alter'] : '',
-      '#description' => __('This field was added using hook_form_FORM_ID_alter()', $this->main->plugin_un),
+      '#description' => __('This field was added using hook_form_FORM_ID_alter()', $this->plugin_un),
     );
 
     $counter = get_option('intel_example_addon_settings_counter', 0);
     $form['example_counter'] = array(
       '#type' => 'textfield',
-      '#title' => __('Example submit counter', $this->main->plugin_un),
+      '#title' => __('Example submit counter', $this->plugin_un),
       '#default_value' => $counter,
-      '#description' => __('Counts form submissions', $this->main->plugin_un),
+      '#description' => __('Counts form submissions', $this->plugin_un),
       '#size' => 5,
     );
 
     $form['example_counter_reset'] = array(
       '#type' => 'checkbox',
-      '#title' => __('Reset counter', $this->main->plugin_un),
+      '#title' => __('Reset counter', $this->plugin_un),
       '#default_value' => '',
     );
 
@@ -276,10 +246,32 @@ final class Intel_Example_Addon_Intel_Form {
 
     update_option('intel_example_addon_settings_counter', $counter);
   }
-}
 
-function intel_example_addon_intel_form() {
-  return Intel_Example_Addon_Intel_Form::instance();
+  /**
+   * Implements hook_intel_demo_pages()
+   *
+   * Adds a demo page to test tracking for this plugin.
+   *
+   * @param array $posts
+   * @return array
+   */
+  function intel_demo_posts($posts = array()) {
+    $id = -1 * (count($posts) + 1);
+
+    $content = '';
+    $content .= '<h3>Demo Intelligence Form</h3>' . "\n";
+    $content .= '[intel_form name="intel_demo_contact_form" title="' . Intel_Df::t('Demo Contact Form') . '"]' . "\n";
+
+    $posts["$id"] = array(
+      'ID' => $id,
+      'post_type' => 'page',
+      'post_title' => 'Demo Example',
+      'post_content' => $content,
+      'intel_demo' => array(
+        'url' => 'intelligence/demo/' . $this->plugin_un,
+      ),
+    );
+
+    return $posts;
+  }
 }
-global $intel_example_addon_intel_form;
-$intel_example_addon_intel_form = intel_example_addon_intel_form();

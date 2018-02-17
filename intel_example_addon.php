@@ -38,40 +38,62 @@ if ( ! defined( 'WPINC' ) ) {
 
 define('INTEL_EXAMPLE_ADDON_VER', '1.0.0.0-dev');
 
+// TEMP
+require_once plugin_dir_path( __FILE__ ) . 'intel_com/intel.wp.inc';
+// END TEMP
+
+// // BEGIN REMOVE FROM ADDON
+// Sets
+global $intel_example_mode;
+//$intel_example_mode = 'form_type';
+$intel_example_mode = 'intel_form';
+// // END REMOVE FROM ADDON
+
 /**
- * Class Intel_Example
+ * Class Intel_Example_Addon
  */
-final class Intel_Example_Addon {
+class Intel_Example_Addon {
 
   protected $version = INTEL_EXAMPLE_ADDON_VER;
 
+  /**
+   * Intel plugin info
+   *
+   * @var array
+   * @since 1.0
+   */
   public $plugin_info = array();
 
+  /**
+   * Intel plugin unique name
+   *
+   * @var string $plugin_un
+   */
   public $plugin_un = 'intel_example_addon';
 
-  public $form_type_un = 'exampleform';
-
   /**
-   * @var Intel_Example_Addon
-   * @since 1.0.0
-   */
-  private static $instance;
-
-  /**
-   * Plugin Directory
+   * Plugin directory
    *
-   * @since 1.0.0
    * @var string $dir
+   * @since 1.0
    */
   public $dir = '';
 
   /**
    * Plugin URL
    *
-   * @since 1.0.0
    * @var string $url
+   * @since 1.0
    */
   public $url = '';
+
+  /**
+   * Reference to singleton object
+   *
+   * @var Intel_Example_Addon
+   * @since 1.0
+   */
+  protected static $instance;
 
   /**
    * Main Plugin Instance
@@ -79,18 +101,18 @@ final class Intel_Example_Addon {
    * Insures that only one instance of a plugin class exists in memory at any one
    * time. Also prevents needing to define globals all over the place.
    *
-   * @since 1.0.2
+   * @since 1.0
    * @static
    * @static var array $instance
    * @return Intel_Example_Addon Instance
    */
   public static function instance($options = array()) {
-    if (null === static::$instance) {
-      static::$instance = new static($options);
-      static::$instance->run();
+    if (null === self::$instance) {
+      self::$instance = new static($options);
+      self::$instance->run();
     }
 
-    return static::$instance;
+    return self::$instance;
   }
 
   /**
@@ -98,13 +120,15 @@ final class Intel_Example_Addon {
    *
    */
   public function __construct() {
-    global $wp;
 
     $this->plugin_info = $this->intel_plugin_info();
 
     $this->dir = plugin_dir_path(__FILE__);
 
     $this->url = plugin_dir_url(__FILE__);
+
+    // Load intel_wp functions
+    include_once $this->dir . 'intel_com/intel.wp.inc';
 
     // Register hook_admin_menu()
     add_filter('admin_menu', array( $this, 'admin_menu' ));
@@ -120,21 +144,19 @@ final class Intel_Example_Addon {
     //add_action('wp_loaded', array( $this, 'wp_loaded' ));
 
     // Register hook_intel_menu()
-    add_filter('intel_menu', array( $this, 'intel_menu' ));
+    add_filter('intel_menu_info', array( $this, 'intel_menu_info' ));
 
     // Register hook_intel_demo_pages()
     add_filter('intel_demo_posts', array( $this, 'intel_demo_posts' ));
 
   }
 
+  /**
+   * Executes on instantiation after object has been constructed
+   */
   protected function run() {
-    include_once $this->dir . 'intel_com/intel.wp.inc';
-
-    // Intel Form usage example
-    include_once $this->dir . 'examples/intel_example_addon.intel_form.inc';
-
-    // Intel Form Type usage example
-    include_once $this->dir . 'examples/intel_example_addon.form_type.inc';
+    // Load intel_wp functions
+    //include_once $this->dir . 'intel_com/intel.wp.inc';
   }
 
   /**
@@ -152,9 +174,12 @@ final class Intel_Example_Addon {
   }
 
   /**
-   * Returns if Intelligence plugin is installed
+   * Returns if Intelligence plugin is installed and setup.
+   *
    * @param string $level
    * @return mixed
+   *
+   * @see intel_is_installed()
    */
   public function is_intel_installed($level = 'min') {
     static $flags = array();
@@ -165,9 +190,12 @@ final class Intel_Example_Addon {
   }
 
   /**
-   * Provides plugin data for hook_intel_system_info
+   * Provides plugin data for hook_intel_system_info()
+   *
    * @param array $info
    * @return array
+   *
+   * @see Intel::
    */
   function intel_plugin_info($info = array()) {
     $info = array(
@@ -218,7 +246,7 @@ final class Intel_Example_Addon {
    * @param array $items
    * @return array
    */
-  public function intel_menu($items = array()) {
+  public function intel_menu_info($items = array()) {
     // route for Admin > Intelligence > Settings > Setup > Example
     $items['admin/config/intel/settings/setup/' . $this->plugin_un] = array(
       'title' => 'Setup',
@@ -236,8 +264,10 @@ final class Intel_Example_Addon {
       'page callback' => array($this, 'intel_admin_help_demo_page'),
       'access callback' => 'user_access',
       'access arguments' => array('admin intel'),
+      'intel_install_access' => 'min',
       'type' => Intel_Df::MENU_LOCAL_TASK,
       'weight' => 10,
+
     );
     return $items;
   }
@@ -300,18 +330,10 @@ final class Intel_Example_Addon {
     $output .= __('Pick one of your forms to test:', $this->plugin_un);
     $output .= '</p>';
 
-    $forms = $this->intel_form_type_form_info();
-
     $l_options = Intel_Df::l_options_add_target('example_demo');
     $l_options = Intel_Df::l_options_add_class('btn btn-info m-b-_5', $l_options);
     $l_options['query'] = array();
-    $output .= '<div>';
-    foreach ($forms as $form) {
-      $l_options['query']['fid'] = $form['id'];
-      $output .= Intel_Df::l( __('Try', $this->plugin_un) . ': ' . $form['title'], 'intelligence/demo/' . $this->plugin_un, $l_options);
-      $output .= '<br>';
-    }
-    $output .= '</div>';
+    $output .= Intel_Df::l( __('Try It Now', $this->plugin_un), 'intelligence/demo/' . $this->plugin_un, $l_options);
 
     $output .= '</div>'; // end col-x-6
     $output .= '</div>'; // end row
@@ -333,22 +355,9 @@ final class Intel_Example_Addon {
   function intel_demo_posts($posts = array()) {
     $id = -1 * (count($posts) + 1);
 
-    $forms = $this->intel_form_type_form_info();
-
     $content = '';
-    if (!empty($_GET['fid']) && !empty($forms[$_GET['fid']])) {
-      $form = $forms[$_GET['fid']];
-      $content .= '<br><h3>' . $form['title'] . ':</h3>';
-      $content .= '[example-form id="' . $form['id'] . '" title="' . $form['title'] . '"]';
-    }
-    elseif (!empty($forms)) {
-      $form = array_shift($forms);
-      $content .= '<br><h3>' . $form['title'] . ':</h3>';
-      $content .= '[example-form id="' . $form['id'] . '" title="' . $form['title'] . '"]';
-    }
-    else {
-      $content = __('No Example forms were found', $this->plugin_un);
-    }
+    $content .= __('Example demo placeholder', $this->plugin_un);
+
     $posts["$id"] = array(
       'ID' => $id,
       'post_type' => 'page',
@@ -375,7 +384,7 @@ final class Intel_Example_Addon {
     // Intel setup checks. Alternative to using hook_wp_loaded()
     if (!$this->is_intel_installed()) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      intel_example_addon_setup()->plugin_setup_admin_menu();
+      intel_example_addon_setup()->admin_menu_plugin_setup();
     }
   }
 
@@ -446,11 +455,36 @@ final class Intel_Example_Addon {
 
 }
 
+// // BEGIN REMOVE FROM ADDON
+/**
+ * Used to make convient method to execute example sub classes.
+ *
+ */
+function intel_example_addon() {
+  global $intel_example_mode;
+  // check if example sub class has been specified
+  if (!empty($intel_example_mode)) {
+    // load class file
+    require_once plugin_dir_path( __FILE__ ) . "examples/intel_example_addon.{$intel_example_mode}.inc";
+    // construct class name and instantiate
+    $sub_class = str_replace(' ', '_', ucwords(str_replace('_', ' ', $intel_example_mode)));
+    return call_user_func('Intel_Example_Addon_' . $sub_class . '::instance');
+  }
+  return Intel_Example_Addon::instance();
+}
+global $intel_example_addon;
+$intel_example_addon = intel_example_addon();
+
+// // END REMOVE FROM ADDON
+
+/* // BEGIN ADD TO ADDON
 function intel_example_addon() {
   return Intel_Example_Addon::instance();
 }
 global $intel_example_addon;
 $intel_example_addon = intel_example_addon();
+*/ // END ADD TO ADDON
+
 
 /*
  * Implements hook_register_activation_hook()

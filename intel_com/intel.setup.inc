@@ -78,22 +78,22 @@ if (!is_callable('intel_setup')) {
 
       if (!is_callable('intel')) {
         // Add pages for plugin setup
-        add_action( 'admin_menu', array( $this, 'intel_setup_admin_menu' ));
+        add_action( 'admin_menu', array( $this, 'admin_menu_plugin_setup' ));
       }
 
       if (!isset($options['plugins_admin_notice']) || !empty($options['plugins_admin_notice'])) {
         global $pagenow;
 
         if ( 'plugins.php' == $pagenow ) {
-          add_action( 'admin_notices', array( $this, 'plugin_setup_admin_notice') );
+          add_action( 'admin_notices', array( $this, 'admin_notices_plugins_page') );
         }
       }
     }
 
     /**
-     * Implements hook_admin_menu()
+     * Implements hook_admin_menu() when plugin is not installed.
      */
-    public function plugin_setup_admin_menu() {
+    public function admin_menu_plugin_setup() {
       global $wp_version;
 
       $text_domain = $plugin_un = $this->plugin_un;
@@ -167,21 +167,27 @@ if (!is_callable('intel_setup')) {
       return $output;
     }
 
-    public function plugin_setup_admin_notice($options = array()) {
-      print $this->get_plugin_setup_notice($options);
+    /**
+     * Implements hook_admin_notices() when on plugins page.
+     * @param array $options
+     */
+    public function admin_notices_plugins_page($options = array()) {
+      $output = $this->get_plugin_setup_notice($options);
+      if ($output) {
+        print $output;
+      }
     }
 
+    /**
+     * Callback for admin_menu_plugin_setup page=intel_admin. Prints plugin setup
+     * page.
+     *
+     * Also sets intel admin setup to redirect to this plugin setup wizard.
+     */
     public function plugin_setup_page() {
-      print $this->get_plugin_setup_page();
-    }
-
-    public function get_plugin_setup_page($options = array()) {
       if (!empty($_GET['plugin']) && $_GET['plugin'] != $this->plugin_un) {
         return;
       }
-
-      wp_enqueue_style('intel-plugin-setup-page', intel_setup()->url . 'css/intel.plugin_setup_page.css');
-
       // initialize setup state option
       $intel_setup = get_option('intel_setup', array());
       $intel_setup['active_path'] = 'admin/config/intel/settings/setup/' . $this->plugin_un;
@@ -189,28 +195,23 @@ if (!is_callable('intel_setup')) {
 
       intel_setup_set_activated_option('intelligence', array('destination' => $intel_setup['active_path']));
 
+      print $this->get_plugin_setup_page();
+    }
+
+    /**
+     * Returns plugin setup output in wp_screen format.
+     *
+     * @param array $options
+     * @return mixed|string
+     */
+    public function get_plugin_setup_page($options = array()) {
+
       $text_domain = $plugin_un = $this->plugin_un;
-      if (empty($vars['plugin_info'])) {
-        $system_info = array();
-        $system_info = apply_filters('intel_system_info', $system_info);
-        $plugin_info = $system_info[$plugin_un];
-      }
 
       $vars = array();
-      $vars['panel_header'] = '<div class="logo"></div>';
-      $vars['content'] = $this->get_intel_install_instructions();
-
-      $vars = array(
-        'id' => 'intel_plugin_setup_page',
-        'content' => intel_wp_theme('wp_welcome_panel', $vars),
-      );
-      $vars['title'] = !empty($plugin_info['plugin_title']) ? $plugin_info['plugin_title'] : __('Plugin');
+      $vars['title'] = !empty($this->plugin_info['plugin_title']) ? $this->plugin_info['plugin_title'] : __('Plugin');
       $vars['title'] .= ' ' . __('Setup', $text_domain);
-
-      $vars['help_tab'] = array(
-        'title' => 'Help title',
-        'content' => 'Help content',
-      );
+      $vars['content'] = $this->get_intel_install_instructions();
 
       $output = intel_wp_theme('wp_screen', $vars);
 
@@ -222,11 +223,73 @@ if (!is_callable('intel_setup')) {
      * 
      * @return mixed|string
      */
-    public function get_intel_install_instructions() {
-      $vars = array(
-        'plugin_un' => $this->plugin_un,
-      );
-      return intel_setup_df_theme('intel_install_instructions', $vars);
+    public function get_intel_install_instructions($vars = array()) {
+      $text_domain = $plugin_un = $this->plugin_un;
+
+      $plugin_info = $this->plugin_info;
+
+      wp_enqueue_style('intel-plugin-setup-page', intel_setup()->url . 'css/intel.plugin_setup_page.css');
+
+      if (!isset($vars['title'])) {
+        $vars['title'] = __('Welcome to Smarter Google Analytics!', $text_domain);
+      }
+
+      if (!isset($vars['panel_header'])) {
+        $vars['panel_header'] = '<div class="logo"></div>';
+      }
+
+      if (!isset($vars['description'])) {
+        $vars['description'] = __('Your moments away from enhanced', $text_domain);
+        $vars['description'] .= ' ' . (!empty($plugin_info['extends_plugin_title']) ? $plugin_info['extends_plugin_title'] : __('Google Analytics', $text_domain));
+        $vars['description'] .= ' ' . __('tracking', $text_domain);
+      }
+
+      if (!isset($vars['body'])) {
+        $vars['body'] = '<p>';
+        $vars['body'] .= __('First we need to install the Intelligence framework plugin.', $text_domain);
+        $vars['body'] .=  '<br>' . __('It\'s what makes the magic.', $text_domain);
+        $vars['body'] .= '</p>';
+
+        if (!isset($vars['action_header'])) {
+          $vars['body'] .= '<h3>' . __('Get Started', $text_domain) . '</h3>';
+        }
+
+        if (empty($vars['install_plugin_card_vars'])) {
+          $vars['install_plugin_card_vars'] = array(
+            'plugin_slug' => 'intelligence',
+            'card_class' => array(
+              'action-buttons-only'
+            ),
+            'install_link_install_class' => array(
+              'btn',
+              'btn-primary',
+              'button-primary',
+            ),
+            'install_link_activate_class' => array(
+              'btn',
+              'btn-primary',
+              'button-primary',
+            ),
+            'install_link_active_class' => array(
+              'btn',
+              'btn-success',
+            ),
+            'install_link_install_text' => __('Install Intelligence', $text_domain),
+            'install_link_activate_text' => __('Activate Intelligence', $text_domain),
+            'install_link_update_text' => __('Update Intelligence', $text_domain),
+            'install_link_active_text' => '<span class="icon glyphicon glyphicon-check" aria-hidden="true"></span> ' . __('Intelligence is active', $text_domain),
+          );
+        }
+
+        $vars['body'] .= '<div class="intel-setup">';
+        $vars['body'] .= intel_wp_theme('install_plugin_card', $vars['install_plugin_card_vars']);
+
+        $vars['body'] .= '</div>';
+      }
+
+      $output = intel_wp_theme('wp_welcome_panel', $vars);
+
+      return $output;
     }
 
     /**
@@ -236,7 +299,7 @@ if (!is_callable('intel_setup')) {
      *
      * @param $plugin
      */
-    public function plugin_setup_activated_plugin($plugin) {
+    public function activated_plugin($plugin) {
       intel_setup_activated_plugin($plugin);
     }
   }
@@ -246,76 +309,9 @@ if (!is_callable('intel_setup')) {
   }
 
   /**
-   * Provides basic theme processes as standin if intel not installed.
-   * @param $hook
-   * @param array $variables
-   * @return mixed|string
-   */
-  function intel_setup_df_theme($hook, $variables = array()) {
-    if (class_exists('Intel_Df')) {
-      return Intel_Df::theme($hook, $variables);
-    }
-
-    $output = '';
-
-    $theme_info = array();
-    $theme_info = apply_filters('intel_theme', $theme_info);
-
-    // call preprocess functions
-    if (is_callable('template_preprocess_' . $hook)) {
-      call_user_func_array('template_preprocess_' . $hook, array(&$variables));
-    }
-
-    // allow plugins to preprocess variables
-    $variables = apply_filters('intel_preprocess_' . $hook, $variables);
-
-    // call process functions
-    if (is_callable('template_process_' . $hook)) {
-      call_user_func_array('template_process_' . $hook, array(&$variables));
-    }
-
-    // allow plugins to process variables
-    $variables = apply_filters('intel_process_' . $hook, $variables);
-
-    if(!empty($theme_info[$hook]['callback'])) {
-      $func = $theme_info[$hook]['callback'];
-      if (is_string($func) && is_callable($func)) {
-        $output = call_user_func_array($func, array(&$variables));
-      }
-    }
-
-    return $output;
-  }
-
-  /**
    * Implements hook_theme().
    */
-  function intel_setup_theme($themes = array()) {
-    //$themes = array();
-    $themes['wp_screen'] = array(
-      'variables' => array(
-        'title' => NULL,
-        'content' => NULL,
-      ),
-      'callback' => 'theme_wp_screen',
-    );
-    $themes['plugin_setup_page'] = array(
-      'variables' => array(
-        'title' => NULL,
-        'content' => NULL,
-      ),
-      'callback' => 'theme_plugin_setup_page',
-    );
-    $themes['intel_install_instructions'] = array(
-      'variables' => array(
-        'header' => NULL,
-        'lead' => NULL,
-        'body' => NULL,
-        'active_header' => NULL,
-        'intel_install_plugin_card' => array(),
-      ),
-      'callback' => 'theme_intel_install_instructions',
-    );
+  function intel_setup_theme_info($themes = array()) {
     $themes['install_plugin_card'] = array(
       'variables' => array(
       ),
@@ -324,140 +320,7 @@ if (!is_callable('intel_setup')) {
     return $themes;
   }
   // Register hook_theme()
-  add_filter('intel_theme', 'intel_setup_theme');
-
-  function template_preprocess_intel_install_instructions(&$vars) {
-    $text_domain = $plugin_un = $vars['plugin_un'];
-
-    if (empty($vars['plugin_info'])) {
-      $system_info = array();
-      $system_info = apply_filters('intel_system_info', $system_info);
-      $plugin_info = $system_info[$plugin_un];
-    }
-    else {
-      $plugin_info = $vars['plugin_info'];
-    }
-
-    if (!isset($vars['header'])) {
-      $vars['header'] = __('Welcome to Smarter Google Analytics!', $text_domain);
-    }
-
-    if (!isset($vars['lead'])) {
-      $vars['lead'] = __('Your moments away from enhanced', $text_domain);
-      $vars['lead'] .= ' ' . (!empty($plugin_info['extends_plugin_title']) ? $plugin_info['extends_plugin_title'] : __('Google Analytics', $text_domain));
-      $vars['lead'] .= ' ' . __('tracking', $text_domain);
-    }
-
-    if (!isset($vars['body'])) {
-      $vars['body'] = '<p>';
-      $vars['body'] .= __('First we need to install the Intelligence framework plugin.', $text_domain);
-      $vars['body'] .=  '<br>' . __('It\'s what makes the magic.', $text_domain);
-      $vars['body'] .= '</p>';
-    }
-
-    if (!isset($vars['action_header'])) {
-      $vars['action_header'] = __('Get Started', $text_domain);
-    }
-
-    if (empty($vars['install_plugin_card'])) {
-      $vars['install_plugin_card'] = array(
-        'plugin_slug' => 'intelligence',
-        'card_class' => array(
-          'action-buttons-only'
-        ),
-        'install_link_install_class' => array(
-          'btn',
-          'btn-primary',
-          'button-primary',
-        ),
-        'install_link_activate_class' => array(
-          'btn',
-          'btn-primary',
-          'button-primary',
-        ),
-        'install_link_active_class' => array(
-          'btn',
-          'btn-success',
-        ),
-        'install_link_install_text' => __('Install Intelligence', $text_domain),
-        'install_link_activate_text' => __('Activate Intelligence', $text_domain),
-        'install_link_update_text' => __('Update Intelligence', $text_domain),
-        'install_link_active_text' => '<span class="icon glyphicon glyphicon-check" aria-hidden="true"></span> ' . __('Intelligence is active', $text_domain),
-      );
-    }
-  }
-
-  function theme_intel_install_instructions($vars) {
-    $items = array();
-
-    if (!empty($vars['header'])) {
-      $items[] = '<h2 class="intel-setup-start-header">' . esc_html($vars['header']) . '</h2>';
-    }
-
-    if (!empty($vars['lead'])) {
-      $items[] = '<p class="intel-setup-start-lead about-description lead">';
-      $items[] = $vars['lead'];
-      $items[] = '</p>';
-    }
-
-    if (!empty($vars['body'])) {
-      $items[] = '<div class="intel-setup-start-body">' . $vars['body'] . '</div>';
-    }
-
-    if (!empty($vars['action_header'])) {
-      $items[] = '<h3 class="intel-setup-action-header">' . esc_html($vars['action_header']) . '</h3>';
-    }
-
-    $items[] = '<div class="intel-setup">';
-    $items[] = intel_setup_df_theme('install_plugin_card', $vars['install_plugin_card']);
-    $items[] = '</div>';
-
-    return implode(' ', $items);
-  }
-
-
-  function template_preprocess_plugin_setup_page(&$vars) {
-    $text_domain = $plugin_un = $vars['plugin_un'];
-    if (empty($vars['plugin_info'])) {
-      $system_info = array();
-      $system_info = apply_filters('intel_system_info', $system_info);
-      $plugin_info = $system_info[$plugin_un];
-    }
-    else {
-      $plugin_info = $vars['plugin_info'];
-    }
-
-    if (!isset($vars['title'])) {
-      $vars['title'] = !empty($plugin_info['plugin_title']) ? $plugin_info['plugin_title'] : __('Plugin');
-      $vars['title'] .= ' ' . __('Setup', $text_domain);
-    }
-  }
-
-  function theme_plugin_setup_page($vars) {
-    wp_enqueue_style('intel-plugin-setup-page', intel_setup()->url . 'css/intel.plugin_setup_page.css');
-
-    $items = array();
-
-    $items[] = '<div class="intel-setup intel-plugin-setup-page wrap">';
-
-    if (!empty($vars['title'])) {
-      $items[] = '<h1 class="intel-setup-start-title">' . esc_html($vars['title']) . '</h1>';
-    }
-
-    $items[] = '<div id="welcome-panel" class="welcome-panel intel-setup">';
-
-    $items[] = '<div class="logo"></div>';
-
-    $items[] = '<div class="welcome-panel-content">';
-
-    $items[] = $vars['content'];
-
-    $items[] = '</div>';
-    $items[] = '</div>';
-    $items[] = '</div>';
-
-    return implode(' ', $items);
-  }
+  add_filter('intel_theme_info', 'intel_setup_theme_info');
 
   function template_preprocess_install_plugin_card(&$vars = array()) {
     include_once(ABSPATH . 'wp-admin/includes/plugin-install.php'); //for plugins_api..
@@ -771,57 +634,6 @@ if (!is_callable('intel_setup')) {
       }
       wp_redirect($info['redirect']);
       exit;
-    }
-  }
-
-  if (!function_exists('intel_d')) {
-    function intel_d() {
-      // check if user has access to this data
-      static $access;
-      if (!isset($access)) {
-        //$access = Intel_Df::user_access('debug intel');
-        $access = 1;
-      }
-      if (!$access) {
-        return;
-      }
-
-      static $kint_aliases;
-      $_ = func_get_args();
-
-      if (class_exists('Kint')) {
-        if (!Kint::enabled()) {
-          return '';
-        }
-
-        // add to static aliases so the function caller info translates
-        if (empty($kint_aliases)) {
-          $kint_aliases = Kint::$aliases;
-          $kint_aliases['functions'][] = 'intel_d';
-          $kint_aliases['functions'][] = 'intel_dd';
-          $kint_aliases['functions'][] = 'intel_print_var';
-          Kint::$aliases = $kint_aliases;
-        }
-
-        ob_start();
-        call_user_func_array(array('Kint', 'dump'), $_);
-        $output = ob_get_clean();
-        if (is_callable('intel') && intel()->is_intel_admin_page()) {
-          Intel_Df::drupal_set_message($output);
-        }
-        else {
-          print $output;
-        }
-      }
-      else {
-        if (is_callable('intel') && intel()->is_intel_admin_page()) {
-          Intel_Df::drupal_set_message(json_encode($_[0]));
-
-        }
-        else {
-          print json_encode($_[0]);
-        }
-      }
     }
   }
 }

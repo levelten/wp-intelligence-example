@@ -15,13 +15,15 @@ if (!is_callable('intel_wp_theme')) {
     $output = '';
 
     $theme_info = array();
-    $theme_info = apply_filters('intel_theme', $theme_info);
+    $theme_info = apply_filters('intel_theme_info', $theme_info);
+    $theme_info = apply_filters('intel_theme_info_alter', $theme_info);
 
     // call preprocess functions
     if (is_callable('template_preprocess_' . $hook)) {
       call_user_func_array('template_preprocess_' . $hook, array(&$variables));
     }
 
+    // fire hook_intel_preprocess_HOOK()
     // allow plugins to preprocess variables
     $variables = apply_filters('intel_preprocess_' . $hook, $variables);
 
@@ -30,11 +32,16 @@ if (!is_callable('intel_wp_theme')) {
       call_user_func_array('template_process_' . $hook, array(&$variables));
     }
 
-    // allow plugins to process variables
+    // fire hook_intel_process_HOOK()
+    // allow plugins to preprocess variables
     $variables = apply_filters('intel_process_' . $hook, $variables);
 
-    if (!empty($theme_info[$hook]['callback'])) {
-      $func = $theme_info[$hook]['callback'];
+    if (!isset($theme_info[$hook]['function']) && isset($theme_info[$hook]['callback'])) {
+      $theme_info[$hook]['function'] = $theme_info[$hook]['callback'];
+    }
+
+    if (!empty($theme_info[$hook]['function'])) {
+      $func = $theme_info[$hook]['function'];
       if (is_string($func) && is_callable($func)) {
         $output = call_user_func_array($func, array(&$variables));
       }
@@ -44,7 +51,7 @@ if (!is_callable('intel_wp_theme')) {
   }
 
   /**
-   * Implements hook_theme().
+   * Implements hook_intel_theme_info().
    */
   function intel_wp_theme_info($themes = array()) {
     //$themes = array();
@@ -60,17 +67,16 @@ if (!is_callable('intel_wp_theme')) {
       'variables' => array(
         'title' => NULL,
         'description' => NULL,
+        'body' => NULL,
         'panel_header' => NULL,
         'panel_footer' => NULL,
-        'content' => NULL,
       ),
       'callback' => 'theme_wp_welcome_panel',
     );
     return $themes;
   }
-
-// Register hook_theme()
-  add_filter('intel_theme', 'intel_wp_theme_info');
+  // Register hook_intel_theme_info()
+  add_filter('intel_theme_info', 'intel_wp_theme_info');
 
   function template_preprocess_wp_screen(&$vars) {
 
@@ -133,10 +139,10 @@ if (!is_callable('intel_wp_theme')) {
       $output .= '<div class="about-description">' . $vars['description'] . '</div>';
     }
 
-    if (isset($vars['content'])) {
+    if (isset($vars['body'])) {
       $output .= '<div class="welcome-panel-column-container">';
-      if (is_array($vars['content'])) {
-        foreach ($vars['content'] as $cnt => $content) {
+      if (is_array($vars['body'])) {
+        foreach ($vars['body'] as $cnt => $content) {
           $class = 'welcome-panel-column-container';
           if ($cnt == (count($content) - 1)) {
             $class .= ' welcome-panel-last';
@@ -147,7 +153,7 @@ if (!is_callable('intel_wp_theme')) {
         }
       }
       else {
-        $output .= $vars['content'];
+        $output .= $vars['body'];
       }
 
       $output .= '</div>'; // end div.welcome-panel-column-container
@@ -163,5 +169,56 @@ if (!is_callable('intel_wp_theme')) {
     $output .= '</div>'; // end div#welcome-panel
 
     return $output;
+  }
+
+  if (!function_exists('intel_d')) {
+    function intel_d() {
+      // check if user has access to this data
+      static $access;
+      if (!isset($access)) {
+        //$access = Intel_Df::user_access('debug intel');
+        $access = 1;
+      }
+      if (!$access) {
+        return;
+      }
+
+      static $kint_aliases;
+      $_ = func_get_args();
+
+      if (class_exists('Kint')) {
+        if (!Kint::enabled()) {
+          return '';
+        }
+
+        // add to static aliases so the function caller info translates
+        if (empty($kint_aliases)) {
+          $kint_aliases = Kint::$aliases;
+          $kint_aliases['functions'][] = 'intel_d';
+          $kint_aliases['functions'][] = 'intel_dd';
+          $kint_aliases['functions'][] = 'intel_print_var';
+          Kint::$aliases = $kint_aliases;
+        }
+
+        ob_start();
+        call_user_func_array(array('Kint', 'dump'), $_);
+        $output = ob_get_clean();
+        if (is_callable('intel') && intel()->is_intel_admin_page()) {
+          Intel_Df::drupal_set_message($output);
+        }
+        else {
+          print $output;
+        }
+      }
+      else {
+        if (is_callable('intel') && intel()->is_intel_admin_page()) {
+          Intel_Df::drupal_set_message(json_encode($_[0]));
+        }
+        else {
+          //print json_encode($_[0]);
+          print '<script> console.log(' . json_encode($_[0]) . ');</script>';
+        }
+      }
+    }
   }
 }

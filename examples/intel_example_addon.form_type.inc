@@ -37,49 +37,23 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 /**
- * Class Intel_Example
+ * Class Intel_Example_Addon_Form_Type
  */
-final class Intel_Example_Addon_Form_Type {
-
-  public $main;
+class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
 
   /**
-   * @var Intel_Example_Addon
-   * @since 1.0.0
+   * Intel form type unique name
+   * @var string
    */
-  private static $instance;
-
-  /**
-   * Main Plugin Instance
-   *
-   * Insures that only one instance of a plugin class exists in memory at any one
-   * time. Also prevents needing to define globals all over the place.
-   *
-   * @since 1.0.2
-   * @static
-   * @static var array $instance
-   * @return Intel_Example_Addon Instance
-   */
-  public static function instance($options = array()) {
-    if (null === static::$instance) {
-      static::$instance = new static($options);
-    }
-
-    return static::$instance;
-  }
+  public $form_type_un = 'exampleform';
 
   /**
    * constructor.
    *
    */
   public function __construct() {
-    global $wp;
 
-    // set main plugin class
-    $this->main = intel_example_addon();
-
-    // Register hook_admin_menu()
-    add_filter('admin_menu', array( $this, 'admin_menu' ));
+    parent::__construct();
 
     /*
      * Intelligence hooks
@@ -90,15 +64,6 @@ final class Intel_Example_Addon_Form_Type {
 
     // Register hook_intel_form_type_FORM_TYPE_UN_form_info()
     add_filter('intel_form_type_exampleform_form_info', array( $this, 'intel_form_type_form_info' ));
-
-  }
-
-  /**
-   * Implements hook_admin_menu()
-   */
-  public function admin_menu() {
-    // Custom sub-page for Intel settings
-    //add_submenu_page('example', esc_html__("Settings Form", $this->main->plugin_un), esc_html__("Intelligence settings form", $this->main->plugin_un), 'manage_options', $this->main->plugin_un . '_form', array($this, 'example_settings_page'));
 
   }
 
@@ -186,10 +151,125 @@ final class Intel_Example_Addon_Form_Type {
 
     return $info;
   }
-}
 
-function intel_example_addon_form_type() {
-  return Intel_Example_Addon_Form_Type::instance();
+  /*
+ * Provides an Intelligence > Help > Demo > Example page
+ */
+  function intel_admin_help_demo_page() {
+    $output = '';
+
+    $demo_mode = get_option('intel_demo_mode', 0);
+
+    /*
+    if (empty($demo_mode)) {
+      $msg = Intel_Df::t('Demo is currently disabled for non logged in users. Go to demo settings to enable.');
+      Intel_Df::drupal_set_message($msg, 'warning');
+    }
+    */
+
+    $output .= '<div class="card">';
+    $output .= '<div class="card-block clearfix">';
+
+    $output .= '<p class="lead">';
+    $output .= Intel_Df::t('Try out Example tracking!');
+    //$output .= ' ' . Intel_Df::t('This tutorial will walk you through the essentials of extending Google Analytics using Intelligence to create results oriented analytics.');
+    $output .= '</p>';
+
+    /*
+    $l_options = Intel_Df::l_options_add_class('btn btn-info');
+    $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path(), $l_options);
+    $output .= Intel_Df::l( Intel_Df::t('Demo settings'), 'admin/config/intel/settings/general/demo', $l_options) . '<br><br>';
+    */
+
+    $output .= '<div class="row">';
+    $output .= '<div class="col-md-6">';
+    $output .= '<p>';
+    $output .= '<h3>' . Intel_Df::t('First') . '</h3>';
+    $output .= __('Launch Google Analytics to see conversions in real-time:', $this->plugin_un);
+    $output .= '</p>';
+
+    $output .= '<div>';
+    $l_options = Intel_Df::l_options_add_target('ga');
+    $l_options = Intel_Df::l_options_add_class('btn btn-info m-b-_5', $l_options);
+    $url = 	$url = intel_get_ga_report_url('rt_goal');
+    $output .= Intel_Df::l( Intel_Df::t('View real-time conversion goals'), $url, $l_options);
+
+    $output .= '<br>';
+
+    $l_options = Intel_Df::l_options_add_target('ga');
+    $l_options = Intel_Df::l_options_add_class('btn btn-info m-b-_5', $l_options);
+    $url = 	$url = intel_get_ga_report_url('rt_event');
+    $output .= Intel_Df::l( Intel_Df::t('View real-time events'), $url, $l_options);
+    $output .= '</div>';
+    $output .= '</div>'; // end col-x-6
+
+    $output .= '<div class="col-md-6">';
+
+    $output .= '<p>';
+    $output .= '<h3>' . Intel_Df::t('Next') . '</h3>';
+    $output .= __('Pick one of your forms to test:', $this->plugin_un);
+    $output .= '</p>';
+
+    $forms = $this->intel_form_type_form_info();
+
+    $l_options = Intel_Df::l_options_add_target('example_demo');
+    $l_options = Intel_Df::l_options_add_class('btn btn-info m-b-_5', $l_options);
+    $l_options['query'] = array();
+    $output .= '<div>';
+    foreach ($forms as $form) {
+      $l_options['query']['fid'] = $form['id'];
+      $output .= Intel_Df::l( __('Try', $this->plugin_un) . ': ' . $form['title'], 'intelligence/demo/' . $this->plugin_un, $l_options);
+      $output .= '<br>';
+    }
+    $output .= '</div>';
+
+    $output .= '</div>'; // end col-x-6
+    $output .= '</div>'; // end row
+
+    $output .= '</div>'; // end card-block
+    $output .= '</div>'; // end card
+
+    return $output;
+  }
+
+  /**
+   * Implements hook_intel_demo_pages()
+   *
+   * Adds a demo page to test tracking for this plugin.
+   *
+   * @param array $posts
+   * @return array
+   */
+  function intel_demo_posts($posts = array()) {
+    $id = -1 * (count($posts) + 1);
+
+    $forms = $this->intel_form_type_form_info();
+
+    $content = '';
+    if (!empty($_GET['fid']) && !empty($forms[$_GET['fid']])) {
+      $form = $forms[$_GET['fid']];
+      $content .= '<br><h3>' . $form['title'] . ':</h3>';
+      $content .= '[example-form id="' . $form['id'] . '" title="' . $form['title'] . '"]';
+    }
+    elseif (!empty($forms)) {
+      $form = array_shift($forms);
+      $content .= '<br><h3>' . $form['title'] . ':</h3>';
+      $content .= '[example-form id="' . $form['id'] . '" title="' . $form['title'] . '"]';
+    }
+    else {
+      $content = __('No Example forms were found', $this->plugin_un);
+    }
+    $posts["$id"] = array(
+      'ID' => $id,
+      'post_type' => 'page',
+      'post_title' => 'Demo Example',
+      'post_content' => $content,
+      'intel_demo' => array(
+        'url' => 'intelligence/demo/' . $this->plugin_un,
+      ),
+    );
+
+    return $posts;
+  }
+
 }
-global $intel_example_addon_form_type;
-$intel_example_addon_form_type = intel_example_addon_form_type();

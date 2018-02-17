@@ -13,7 +13,7 @@ function intel_example_addon_admin_setup_wizard_info($items = array()) {
 
   $info = array(
     'title' => $intel_example_addon->plugin_info['plugin_title'] . ' ' . __('setup'),
-    'un' => 'intel_example_setup',
+    'un' => 'intel_example_addon_setup',
     'callback_prefix' => 'intel_example_addon_admin_setup',
     'steps' => array(),
   );
@@ -98,7 +98,8 @@ function intel_example_addon_admin_setup_intel_profile($form, &$form_state) {
 
 function intel_example_addon_admin_setup_intel_profile_check($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
-  return intel_admin_setup_intel_profile_check($form, $form_state);
+  $status = intel_admin_setup_intel_profile_check($form, $form_state);
+  return $status;
 }
 
 function intel_example_addon_admin_setup_intel_profile_validate($form, &$form_state, $status) {
