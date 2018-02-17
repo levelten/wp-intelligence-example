@@ -1,34 +1,9 @@
 <?php
 /**
-* Intelligence Example Addon bootstrap file
-*
-* This file is read by WordPress to generate the plugin information in the plugin
-* admin area. This file also includes all of the dependencies used by the plugin,
-* registers the activation and deactivation functions, and defines a function
-* that starts the plugin.
-*
-* @link              getlevelten.com/blog/tom
-* @since             1.0.0
-* @package           Intelligence
-*
-* @wordpress-plugin
-* Plugin Name:       Intelligence Example Addon
-* Plugin URI:        https://wordpress.org/plugins/intelligence-example-addon
-* Description:       Example Intelligence add-on plugin.
-* Version:           1.0.0.0-dev
-* Author:            LevelTen
-* Author URI:        https://intelligencewp.com
-* License:           GPL-2.0+
-* License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
-* Text Domain:       intel_example
-* Domain Path:       /languages
-* GitHub Plugin URI: https://github.com/levelten/wp-intelligence-example-addon
-*/
-
-/**
- * This is an starter / example Intelligence add-on plugin. It is designed to
- * extend the fictional "Example plugin".
+ * Intelligence Example Addon Intel Form
  *
+ * Extends Intelligence Example Addon to provide examples of Intel Form usage.
+ * ?
  */
 
 // If this file is called directly, abort.
@@ -77,9 +52,13 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
    */
   public function example_settings_form_page() {
 
-    if (!$this->is_intel_installed()) {
+    $screen_vars = array(
+      'title' => __("Intelligence form settings", $this->plugin_un),
+    );
+    if (!$this->is_intel_installed('min')) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      print intel_example_addon_setup()->plugin_setup_notice(array('alert' => 1));
+      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('alert' => 1));
+      print intel_setup_theme('setup_screen', $screen_vars);
       return;
     }
 
@@ -88,19 +67,17 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
 
     $output = '';
     $form = Intel_Form::drupal_get_form('Intel_Example_Addon_Intel_Form::intel_example_addon_settings_form');
-    $content = Intel_Df::render($form);
-    $vars = array(
-      'title' => __('Intelligence settings form'),
-      'content' => $content,
-    );
+    $screen_vars['content'] = Intel_Df::render($form);
 
-    $output = intel_wp_theme('wp_screen', $vars);
+    $output = Intel_Df::theme('wp_screen', $screen_vars);
 
     echo $output;
   }
 
   /**
+   * Implements hook_FORM_ID_form()
    *
+   * Provides form fields.
    */
   public static function intel_example_addon_settings_form($form, &$form_state) {
     // Get setings from option
@@ -127,22 +104,22 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
   }
 
   /**
-   * Implements FORM_ID_validate();
+   * Implements hook_FORM_ID_validate();
    *
-   * Processes form submissions.
+   * Validates form values.
    *
    * @param $form
    * @param $form_state
    */
   public static function intel_example_addon_settings_form_validate($form, &$form_state) {
     $values = $form_state['values'];
-    $settings = $form_state['settings'];
-
-    update_option('intel_example_addon_settings', $values);
+    if (strlen($form_state['values']['example_textfield']) < 5) {
+      Intel_Form::form_set_error('example_textfield', __('The example textfield must be at least 5 characters.', self::$instance->plugin_un));
+    }
   }
 
   /**
-   * Implements FORM_ID_submit();
+   * Implements hook_FORM_ID_submit();
    *
    * Processes form submissions.
    *
@@ -154,6 +131,8 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
     $settings = $form_state['settings'];
 
     update_option('intel_example_addon_settings', $values);
+
+    Intel_Df::drupal_set_message(__('Example settings have been saved.', self::$instance->plugin_un));
   }
 
   /**

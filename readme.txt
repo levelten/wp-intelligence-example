@@ -1,4 +1,4 @@
-=== Intelligence Example Add-On ===
+=== Intelligence Example Addon ===
 Contributors: tomdude
 Donate link: getlevelten.com/blog/tom
 Tags: analytics, contact, contact form, form, google analytics, marketing, metrics, stats, tracking, web form
@@ -8,7 +8,7 @@ Stable tag: 1.0.0.0-dev
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Example Intelligence Add-On. Good start for add-ons.
+Example Intelligence Addon. Good starting structure for Intelligence add-ons.
 
 == Description ==
 
@@ -52,9 +52,6 @@ INTEL_EXAMPLE_ADDON -> INTEL_FOO_BAR
 
 Review:
 Intel_Example_Addon::intel_plugin_info()
-
-
-
 
 Example
 

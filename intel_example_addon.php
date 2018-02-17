@@ -38,10 +38,6 @@ if ( ! defined( 'WPINC' ) ) {
 
 define('INTEL_EXAMPLE_ADDON_VER', '1.0.0.0-dev');
 
-// TEMP
-require_once plugin_dir_path( __FILE__ ) . 'intel_com/intel.wp.inc';
-// END TEMP
-
 // // BEGIN REMOVE FROM ADDON
 // Sets
 global $intel_example_mode;
@@ -126,9 +122,6 @@ class Intel_Example_Addon {
     $this->dir = plugin_dir_path(__FILE__);
 
     $this->url = plugin_dir_url(__FILE__);
-
-    // Load intel_wp functions
-    include_once $this->dir . 'intel_com/intel.wp.inc';
 
     // Register hook_admin_menu()
     add_filter('admin_menu', array( $this, 'admin_menu' ));
@@ -392,10 +385,13 @@ class Intel_Example_Addon {
    * Settings page for Admin > Example > Intelligence
    */
   public function example_settings_page() {
-
+    $screen_vars = array(
+      'title' => __("Intelligence settings", $this->plugin_un),
+    );
     if (!$this->is_intel_installed('min')) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      print intel_example_addon_setup()->plugin_setup_notice(array('alert' => 1));
+      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('alert' => 1));
+      print intel_setup_theme('setup_screen', $screen_vars);
       return;
     }
 
@@ -448,7 +444,7 @@ class Intel_Example_Addon {
       'title' => __( 'Intelligence Settings', $this->plugin_un ),
       'content' => $output,
     );
-    $output = intel_wp_theme('wp_screen', $vars);
+    $output = Intel_Df::theme('wp_screen', $vars);
 
     print $output;
   }

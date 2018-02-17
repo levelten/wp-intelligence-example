@@ -1,33 +1,9 @@
 <?php
 /**
-* Intelligence Example Addon bootstrap file
-*
-* This file is read by WordPress to generate the plugin information in the plugin
-* admin area. This file also includes all of the dependencies used by the plugin,
-* registers the activation and deactivation functions, and defines a function
-* that starts the plugin.
-*
-* @link              getlevelten.com/blog/tom
-* @since             1.0.0
-* @package           Intelligence
-*
-* @wordpress-plugin
-* Plugin Name:       Intelligence Example Addon
-* Plugin URI:        https://wordpress.org/plugins/intelligence-example-addon
-* Description:       Example Intelligence add-on plugin.
-* Version:           1.0.0.0-dev
-* Author:            LevelTen
-* Author URI:        https://intelligencewp.com
-* License:           GPL-2.0+
-* License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
-* Text Domain:       intel_example
-* Domain Path:       /languages
-* GitHub Plugin URI: https://github.com/levelten/wp-intelligence-example-addon
-*/
-
-/**
- * This is an starter / example Intelligence add-on plugin. It is designed to
- * extend the fictional "Example plugin".
+ * Intelligence Example Addon Form Type
+ *
+ * Extends Intelligence Example Addon to provide functionality to connect with
+ * plugins that provide form types.
  *
  */
 
