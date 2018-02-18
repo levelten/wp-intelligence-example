@@ -57,7 +57,7 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
     );
     if (!$this->is_intel_installed('min')) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('alert' => 1));
+      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('inline' => 1));
       print intel_setup_theme('setup_screen', $screen_vars);
       return;
     }

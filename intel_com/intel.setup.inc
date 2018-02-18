@@ -142,13 +142,12 @@ if (!is_callable('intel_setup')) {
 
       $type = !empty($options['type']) ? $options['type'] : 'error';
       $notice_class = "intel-setup notice notice-$type";
-      if (!empty($options['alert'])) {
-        $notice_class = "intel-setup alert alert-$type";
+      if (!empty($vars['inline'])) {
+        $notice_class .= " inline";
       }
 
       // check dependencies
       if (!function_exists('intel_is_plugin_active')) {
-        //$output .= '<div class="notice notice-' . $type . '">';
         $output .= '<div class="' . $notice_class . '">';
         $output .= '<p>';
         $output .= '<strong>' . __('Notice:') . '</strong> ';

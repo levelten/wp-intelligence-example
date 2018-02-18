@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Included to assist in initial setup of plugin
  *
  * @since      1.0.0
@@ -8,7 +9,8 @@
  * @package    Intel
  */
 
-if (!is_callable('intel_setup_addon')) {
+// check if intel_setup is available, if not include.
+if (!is_callable('intel_setup')) {
 	include_once intel_example_addon()->dir . 'intel_com/intel.setup.inc';
 }
 

@@ -39,7 +39,10 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
     add_filter('intel_form_type_info', array( $this, 'intel_form_type_info'));
 
     // Register hook_intel_form_type_FORM_TYPE_UN_form_info()
-    add_filter('intel_form_type_exampleform_form_info', array( $this, 'intel_form_type_form_info' ));
+    add_filter('intel_form_type_' . $this->form_type_un . '_form_info', array( $this, 'intel_form_type_form_info' ));
+
+    // Register hook_intel_url_urn_resolver()
+    add_filter('intel_url_urn_resolver', array( $this, 'intel_url_urn_resolver') );
 
   }
 
@@ -54,14 +57,20 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
    * @param array $info
    * @return array
    */
-  function intel_form_type_info($info = array()) {
+  public function intel_form_type_info($info = array()) {
     $info[$this->form_type_un] = array(
-      // A machine name to uniquly identify the form type provided by this plugin.
+      // A machine name to uniquely identify the form type provided by this plugin.
       'un' => $this->form_type_un,
       // Human readable name of the form type provided by this plugin.
       'title' => __( 'Example Form', $this->plugin_un ),
       // The plugin unique name for this plugin
       'plugin_un' => $this->plugin_un,
+      // form tracking features addon supports
+      'supports' => array(
+        'track_submission' => 1,
+        'track_submission_value' => 1,
+        'track_view' => 1,
+      ),
       // Callback to get data for form submissions
       'submission_data_callback' => array($this, 'intel_form_type_submission_data'),
     );
@@ -77,7 +86,7 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
    *
    * Optional: Remove if plugin does not provide a form type to be tracked
    */
-  function intel_form_type_form_info($data = NULL, $options = array()) {
+  public function intel_form_type_form_info($options = array()) {
     static $info = array();
 
     if (!empty($info) && empty($options['refresh'])) {
@@ -131,7 +140,7 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
   /*
  * Provides an Intelligence > Help > Demo > Example page
  */
-  function intel_admin_help_demo_page() {
+  public function intel_admin_help_demo_page() {
     $output = '';
 
     $demo_mode = get_option('intel_demo_mode', 0);
@@ -188,7 +197,7 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
 
     $forms = $this->intel_form_type_form_info();
 
-    $l_options = Intel_Df::l_options_add_target('example_demo');
+    $l_options = Intel_Df::l_options_add_target($this->plugin_un . '_demo');
     $l_options = Intel_Df::l_options_add_class('btn btn-info m-b-_5', $l_options);
     $l_options['query'] = array();
     $output .= '<div>';
@@ -216,7 +225,7 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
    * @param array $posts
    * @return array
    */
-  function intel_demo_posts($posts = array()) {
+  public function intel_demo_posts($posts = array()) {
     $id = -1 * (count($posts) + 1);
 
     $forms = $this->intel_form_type_form_info();
@@ -238,7 +247,7 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
     $posts["$id"] = array(
       'ID' => $id,
       'post_type' => 'page',
-      'post_title' => 'Demo Example',
+      'post_title' => __('Demo') . ' ' . $this->plugin_info['extends_plugin_title'],
       'post_content' => $content,
       'intel_demo' => array(
         'url' => 'intelligence/demo/' . $this->plugin_un,
@@ -246,6 +255,38 @@ class Intel_Example_Addon_Form_Type extends Intel_Example_Addon {
     );
 
     return $posts;
+  }
+
+  /**
+   * Implements hook_intel_url_urn_resolver()
+   */
+  function intel_url_urn_resolver($vars) {
+    $urn_elms = explode(':', $vars['path']);
+    if ($urn_elms[0] == 'urn') {
+      array_shift($urn_elms);
+    }
+    if ($urn_elms[0] == '') {
+      if ($urn_elms[1] == $this->form_type_un && !empty($urn_elms[2])) {
+        $vars['path'] = 'wp-admin/post.php';
+        $vars['options']['query']['action'] = 'edit';
+        $vars['options']['query']['post'] = $urn_elms[2];
+      }
+    }
+
+    return $vars;
+  }
+
+  /**
+   * Implements hook_intel_test_url_parsing_alter()
+   */
+  function intel_test_url_parsing_alter($urls) {
+    $urls[] = ":{$this->form_type_un}:1";
+    $urls[] = "urn::{$this->form_type_un}:1";
+    $urls[] = ":{$this->form_type_un}:1:1";
+    $urls[] = "urn::{$this->form_type_un}:1:1";
+    $urls[] = ":{$this->form_type_un}:1:submission:1";
+    $urls[] = "urn::{$this->form_type_un}:1:submission:1";
+    return $urls;
   }
 
 }

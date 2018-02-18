@@ -115,7 +115,7 @@ class Intel_Example_Addon {
    * constructor.
    *
    */
-  public function __construct() {
+  protected function __construct() {
 
     $this->plugin_info = $this->intel_plugin_info();
 
@@ -190,7 +190,7 @@ class Intel_Example_Addon {
    *
    * @see Intel::
    */
-  function intel_plugin_info($info = array()) {
+  public function intel_plugin_info($info = array()) {
     $info = array(
       // The unique name for this plugin
       'plugin_un' => $this->plugin_un,
@@ -207,7 +207,7 @@ class Intel_Example_Addon {
       // The install file for the plugin if different than [plugin_un].install
       // Used to auto discover database updates
       'update_file' => 'intel_example_addon.install', // default [plugin_un].install
-      // If this plugin extends a plugin other than Intelligience, include that
+      // If this plugin extends a plugin other than Intelligence, include that
       // plugin's info in 'extends_' properties
       // The extends plugin unique name
       'extends_plugin_un' => 'example_plugin',
@@ -227,14 +227,14 @@ class Intel_Example_Addon {
    * @param array $info
    * @return array
    */
-  function intel_system_info($info = array()) {
+  public function intel_system_info($info = array()) {
     // array of plugin info indexed by plugin_un
     $info[$this->plugin_un] = $this->intel_plugin_info();
     return $info;
   }
 
   /**
-   * Implements hook_intel_menu()
+   * Implements hook_intel_menu_info()
    *
    * @param array $items
    * @return array
@@ -243,7 +243,7 @@ class Intel_Example_Addon {
     // route for Admin > Intelligence > Settings > Setup > Example
     $items['admin/config/intel/settings/setup/' . $this->plugin_un] = array(
       'title' => 'Setup',
-      'description' => Intel_Df::t('Intelligence Example initial plugin setup'),
+      'description' => $this->plugin_info['plugin_title'] . ' ' . __('initial plugin setup', $this->plugin_un),
       'page callback' => $this->plugin_un . '_admin_setup_page',
       'access callback' => 'user_access',
       'access arguments' => array('admin intel'),
@@ -268,7 +268,7 @@ class Intel_Example_Addon {
   /*
    * Provides an Intelligence > Help > Demo > Example page
    */
-  function intel_admin_help_demo_page() {
+  public function intel_admin_help_demo_page() {
     $output = '';
 
     $demo_mode = get_option('intel_demo_mode', 0);
@@ -345,7 +345,7 @@ class Intel_Example_Addon {
    * @param array $posts
    * @return array
    */
-  function intel_demo_posts($posts = array()) {
+  public function intel_demo_posts($posts = array()) {
     $id = -1 * (count($posts) + 1);
 
     $content = '';
@@ -390,7 +390,7 @@ class Intel_Example_Addon {
     );
     if (!$this->is_intel_installed('min')) {
       require_once( $this->dir . $this->plugin_un . '.setup.inc' );
-      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('alert' => 1));
+      $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('inline' => 1));
       print intel_setup_theme('setup_screen', $screen_vars);
       return;
     }
