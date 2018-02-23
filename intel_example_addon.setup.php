@@ -11,7 +11,7 @@
 
 // check if intel_setup is available, if not include.
 if (!is_callable('intel_setup')) {
-	include_once intel_example_addon()->dir . 'intel_com/intel.setup.inc';
+	include_once intel_example_addon()->dir . 'intel_com/intel.setup.php';
 }
 
 class Intel_Example_Addon_Setup extends Intel_Setup {

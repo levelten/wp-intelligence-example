@@ -148,8 +148,7 @@ class Intel_Example_Addon {
    * Executes on instantiation after object has been constructed
    */
   protected function run() {
-    // Load intel_wp functions
-    //include_once $this->dir . 'intel_com/intel.wp.inc';
+
   }
 
   /**
@@ -162,7 +161,7 @@ class Intel_Example_Addon {
   public function wp_loaded() {
     // check if Intel is installed, add setup processing if not
     if (!$this->is_intel_installed()) {
-      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
+      require_once( $this->dir . $this->plugin_un . '.setup.php' );
     }
   }
 
@@ -248,7 +247,7 @@ class Intel_Example_Addon {
       'access callback' => 'user_access',
       'access arguments' => array('admin intel'),
       'type' => Intel_Df::MENU_LOCAL_TASK,
-      'file' => 'admin/' . $this->plugin_un . '.admin_setup.inc',
+      'file' => 'admin/' . $this->plugin_un . '.admin_setup.php',
       'file path' => $this->dir,
     );
     // rout for Admin > Intelligence > Help > Demo > Example
@@ -260,7 +259,6 @@ class Intel_Example_Addon {
       'intel_install_access' => 'min',
       'type' => Intel_Df::MENU_LOCAL_TASK,
       'weight' => 10,
-
     );
     return $items;
   }
@@ -358,6 +356,8 @@ class Intel_Example_Addon {
       'post_content' => $content,
       'intel_demo' => array(
         'url' => 'intelligence/demo/' . $this->plugin_un,
+        // don't allow users to override demo page content
+        'overridable' => 0,
       ),
     );
 
@@ -376,7 +376,7 @@ class Intel_Example_Addon {
 
     // Intel setup checks. Alternative to using hook_wp_loaded()
     if (!$this->is_intel_installed()) {
-      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
+      require_once( $this->dir . $this->plugin_un . '.setup.php' );
       intel_example_addon_setup()->admin_menu_plugin_setup();
     }
   }
@@ -389,7 +389,7 @@ class Intel_Example_Addon {
       'title' => __("Intelligence settings", $this->plugin_un),
     );
     if (!$this->is_intel_installed('min')) {
-      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
+      require_once( $this->dir . $this->plugin_un . '.setup.php' );
       $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('inline' => 1));
       print intel_setup_theme('setup_screen', $screen_vars);
       return;
@@ -461,7 +461,7 @@ function intel_example_addon() {
   // check if example sub class has been specified
   if (!empty($intel_example_mode)) {
     // load class file
-    require_once plugin_dir_path( __FILE__ ) . "examples/intel_example_addon.{$intel_example_mode}.inc";
+    require_once plugin_dir_path( __FILE__ ) . "examples/intel_example_addon.{$intel_example_mode}.php";
     // construct class name and instantiate
     $sub_class = str_replace(' ', '_', ucwords(str_replace('_', ' ', $intel_example_mode)));
     return call_user_func('Intel_Example_Addon_' . $sub_class . '::instance');
@@ -489,10 +489,10 @@ $intel_example_addon = intel_example_addon();
  *
  * Initializes Intel's database schema update system
  */
-function _intel_example_addon_activation() {
+function intel_example_addon_activation_hook() {
   // plugin specific installation code.
   // initializes data for plugin when first installed
-  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install';
+  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install.php';
   intel_example_addon_install();
 
   // check if Intel is active
@@ -501,27 +501,27 @@ function _intel_example_addon_activation() {
     intel_activate_plugin('intel_example_addon');
   }
 }
-register_activation_hook( __FILE__, '_intel_example_addon_activation' );
+register_activation_hook( __FILE__, 'intel_example_addon_activation_hook' );
 
 /**
  * Implements hook_register_deactivation_hook()
  *
  * The code that runs during plugin deactivation.
  */
-function _intel_example_addon_deactivate() {
+function intel_example_addon_deactivate_hook() {
 
 }
-register_deactivation_hook( __FILE__, '_intel_example_addon_deactivate' );
+register_deactivation_hook( __FILE__, 'intel_example_addon_deactivate_hook' );
 
 /*
  * Implements hook_register_uninstall_hook()
  *
  * Runs when plugin is Deleted (uninstalled)
  */
-function _intel_example_addon_uninstall() {
+function intel_example_addon_uninstall_hook() {
   // plugin specific installation code.
   // remove plugin data from database before plugin is uninstalled
-  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install';
+  require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install.php';
   intel_example_addon_uninstall();
 }
-register_uninstall_hook( __FILE__, '_intel_example_addon_uninstall' );
+register_uninstall_hook( __FILE__, 'intel_example_addon_uninstall_hook' );

@@ -28,13 +28,13 @@ Example
 Title: Intelligence Foo Bar
 Plugin_un: intel_foo_bar
 
-Change any file names including 'intel_example' to the new plugin_un.
+Change any file names including 'intel_example_addon' to the new plugin_un.
 
 Examples:
-intel_example.php -> intel_foo_bar.php
-intel_example.install -> intel_foo_bar.install
-intel_example.setup -> intel_foo_bar.setup
-admin/intel_example.setup.inc -> admin/intel_foo_bar.setup.inc
+intel_example_addon.php             -> intel_foo_bar.php
+intel_example_addon.install.php     -> intel_foo_bar.install.php
+intel_example_addon.setup.php       -> intel_foo_bar.setup.php
+admin/intel_example_addon.setup.php -> admin/intel_foo_bar.setup.php
 
 Search and replace in the new plugin directory
 

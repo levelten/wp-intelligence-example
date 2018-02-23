@@ -56,7 +56,7 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
       'title' => __("Intelligence form settings", $this->plugin_un),
     );
     if (!$this->is_intel_installed('min')) {
-      require_once( $this->dir . $this->plugin_un . '.setup.inc' );
+      require_once( $this->dir . $this->plugin_un . '.setup.php' );
       $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('inline' => 1));
       print intel_setup_theme('setup_screen', $screen_vars);
       return;
@@ -248,6 +248,8 @@ class Intel_Example_Addon_Intel_Form extends Intel_Example_Addon {
       'post_content' => $content,
       'intel_demo' => array(
         'url' => 'intelligence/demo/' . $this->plugin_un,
+        // don't allow users to override demo page content
+        'overridable' => 0,
       ),
     );
 
