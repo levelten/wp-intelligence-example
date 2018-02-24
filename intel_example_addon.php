@@ -38,6 +38,8 @@ if ( ! defined( 'WPINC' ) ) {
 
 define('INTEL_EXAMPLE_ADDON_VER', '1.0.0.0-dev');
 
+define('INTEL_EXAMPLE_ADDON_INTEL_VER_MIN', '1.2.10');
+
 // // BEGIN REMOVE FROM ADDON
 // Sets
 global $intel_example_mode;
@@ -51,6 +53,8 @@ $intel_example_mode = 'intel_form';
 class Intel_Example_Addon {
 
   protected $version = INTEL_EXAMPLE_ADDON_VER;
+
+  protected $intel_ver_min = INTEL_EXAMPLE_ADDON_INTEL_VER_MIN;
 
   /**
    * Intel plugin info
@@ -176,6 +180,12 @@ class Intel_Example_Addon {
   public function is_intel_installed($level = 'min') {
     static $flags = array();
     if (!isset($flags[$level])) {
+      if (!defined('INTEL_VER')) {
+        return FALSE;
+      }
+      if (version_compare('INTEL_VER', $this->intel_ver_min, '<')) {
+        return FALSE;
+      }
       $flags[$level] = (is_callable('intel_is_installed')) ? intel_is_installed($level) : FALSE;
     }
     return $flags[$level];
@@ -193,12 +203,16 @@ class Intel_Example_Addon {
     $info = array(
       // The unique name for this plugin
       'plugin_un' => $this->plugin_un,
+      // Plugin version
+      'plugin_version' => $this->version,
       // Title of the plugin
       'plugin_title' => __('Intelligence Example Addon', $this->plugin_un),
       // Shorter version of title used when reduced characters are desired
       'plugin_title_short' => __('Intelligence Example', $this->plugin_un),
+      // Plugin slug - name of directory containing plugin
+      'plugin_slug' => 'intel_example_addon',
       // Main plugin file
-      'plugin_file' => 'intel_example_addon.php', // Main plugin file
+      'plugin_file' => 'intel_example_addon.php',
       // The server path to the plugin files directory
       'plugin_dir' => $this->dir,
       // The browser path to the plugin files directory
