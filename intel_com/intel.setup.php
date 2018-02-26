@@ -121,7 +121,7 @@ if (!is_callable('intel_setup')) {
     }
 
     public function get_plugin_setup_url() {
-      return admin_url() . 'admin.php?page=intel_config&plugin=' . $this->plugin_un . '&q=' .'admin/config/intel/settings/setup/' . $this->plugin_un;
+      return 'admin.php?page=intel_config&plugin=' . $this->plugin_un . '&q=' .'admin/config/intel/settings/setup/' . $this->plugin_un;
     }
 
     /**
