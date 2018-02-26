@@ -3,8 +3,8 @@ Contributors: tomdude
 Donate link: getlevelten.com/blog/tom
 Tags: analytics, contact, contact form, form, google analytics, marketing, metrics, stats, tracking, web form
 Requires at least: 4.5
-Tested up to: 4.9.2
-Stable tag: 1.0.0.0-dev
+Tested up to: 4.9.4
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

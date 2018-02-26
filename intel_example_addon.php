@@ -15,7 +15,7 @@
 * Plugin Name:       Intelligence Example Addon
 * Plugin URI:        https://wordpress.org/plugins/intelligence-example-addon
 * Description:       Example Intelligence add-on plugin.
-* Version:           1.0.0.0-dev
+* Version:           1.3.0
 * Author:            LevelTen
 * Author URI:        https://intelligencewp.com
 * License:           GPL-2.0+
@@ -36,9 +36,9 @@ if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
-define('INTEL_EXAMPLE_ADDON_VER', '1.0.0.0-dev');
+define('INTEL_EXAMPLE_ADDON_VER', '1.3.0');
 
-define('INTEL_EXAMPLE_ADDON_INTEL_VER_MIN', '1.2.10');
+define('INTEL_EXAMPLE_ADDON_INTEL_VER_MIN', '1.3.0');
 
 // // BEGIN REMOVE FROM ADDON
 // Sets
