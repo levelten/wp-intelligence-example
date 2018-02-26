@@ -121,7 +121,7 @@ if (!is_callable('intel_setup')) {
     }
 
     public function get_plugin_setup_url() {
-      return 'admin.php?page=intel_config&plugin=' . $this->plugin_un . '&q=' .'admin/config/intel/settings/setup/' . $this->plugin_un;
+      return admin_url() . 'admin.php?page=intel_config&plugin=' . $this->plugin_un . '&q=' .'admin/config/intel/settings/setup/' . $this->plugin_un;
     }
 
     /**
@@ -760,6 +760,13 @@ if (!is_callable('intel_setup')) {
     set_transient('intel_activated_' . $plugin_slug, $value, 3600);
   }
 
+  /**
+   * Implements hook_activated_plugin()
+   *
+   * Checks for redirects after plugin has been activated. Assume
+   *
+   * @param $plugin
+   */
   function intel_setup_activated_plugin($plugin) {
     $a = explode('/', $plugin);
     $slug = $a[0];
@@ -782,7 +789,7 @@ if (!is_callable('intel_setup')) {
       if ($slug == 'intelligence') {
         intel()->setup_role_caps();
       }
-      wp_redirect($info['redirect']);
+      Intel_Df::drupal_goto($info['redirect']);
       exit;
     }
   }

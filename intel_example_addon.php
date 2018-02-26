@@ -402,6 +402,10 @@ class Intel_Example_Addon {
     $screen_vars = array(
       'title' => __("Intelligence settings", $this->plugin_un),
     );
+
+    $url = Intel_Df::url('admin/config/intel/settings/setup');
+    print $url;
+
     if (!$this->is_intel_installed('min')) {
       require_once( $this->dir . $this->plugin_un . '.setup.php' );
       $screen_vars['content'] = intel_example_addon_setup()->get_plugin_setup_notice(array('inline' => 1));
