@@ -180,12 +180,6 @@ class Intel_Example_Addon {
   public function is_intel_installed($level = 'min') {
     static $flags = array();
     if (!isset($flags[$level])) {
-      if (!defined('INTEL_VER')) {
-        return FALSE;
-      }
-      if (version_compare('INTEL_VER', $this->intel_ver_min, '<')) {
-        return FALSE;
-      }
       $flags[$level] = (is_callable('intel_is_installed')) ? intel_is_installed($level) : FALSE;
     }
     return $flags[$level];

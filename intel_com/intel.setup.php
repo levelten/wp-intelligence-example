@@ -148,7 +148,7 @@ if (!is_callable('intel_setup')) {
       }
 
       // check dependencies
-      if (!function_exists('intel_is_plugin_active')) {
+      if (!is_callable('intel_is_installed') || !intel_is_installed('min')) {
         $output .= '<div class="' . $notice_class . '">';
         $output .= '<p>';
         $output .= '<strong>' . __('Notice:') . '</strong> ';
@@ -781,7 +781,7 @@ if (!is_callable('intel_setup')) {
     delete_transient('intel_activated_' . $slug);
 
     if (!empty($info['destination'])) {
-      $info['redirect'] = Intel_Df::url($info['destination']);
+      $info['redirect'] = Intel_Df::url($info['destination'], array('absolute' => 1));
     }
     if (!empty($info['redirect'])) {
       // need to init role capabilities before redirect otherwise access will be
