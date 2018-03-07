@@ -24,14 +24,8 @@ function intel_example_addon_uninstall() {
 	global $wpdb;
 
 	// delete options
-	$sql = "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'wpcf7_intel_%'";
+	$sql = "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'intel_example_addon_intel_%'";
 	$wpdb->query( $sql );
-
-	// uninstall plugin related intel data
-	if (is_callable('intel_uninstall_plugin')) {
-		intel_uninstall_plugin('wpcf7_intel');
-	}
-
 }
 
 /**

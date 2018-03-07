@@ -44,7 +44,8 @@ define('INTEL_EXAMPLE_ADDON_INTEL_VER_MIN', '1.3.0');
 // Sets
 global $intel_example_mode;
 //$intel_example_mode = 'form_type';
-$intel_example_mode = 'intel_form';
+//$intel_example_mode = 'intel_form';
+$intel_example_mode = 'intel_event';
 // // END REMOVE FROM ADDON
 
 /**
@@ -532,5 +533,11 @@ function intel_example_addon_uninstall_hook() {
   // remove plugin data from database before plugin is uninstalled
   require_once plugin_dir_path( __FILE__ ) . 'intel_example_addon.install.php';
   intel_example_addon_uninstall();
+
+  // check if Intel is active
+  if (is_callable('intel_uninstall_plugin')) {
+    // cleans up intel plugin data
+    intel_uninstall_plugin('intel_example_addon');
+  }
 }
 register_uninstall_hook( __FILE__, 'intel_example_addon_uninstall_hook' );
